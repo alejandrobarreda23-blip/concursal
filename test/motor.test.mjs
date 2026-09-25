@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { generarAuto, generarDeclaracion, redactar, aTextoPlano, controlesCalidad } from '../src/index.mjs';
 const generar = (e) => (e.solicitud ? generarDeclaracion(e) : generarAuto(e));
 import { validarPack, estadoRatificacion, hashBloques } from '../src/bloques.mjs';
-import { ejemplo, copia } from './helpers.mjs';
+import { ejemplo, copia, knowledge } from './helpers.mjs';
 
 const EJEMPLOS = ['01-epi-sin-oposicion', '02-con-oposicion', '03-persona-juridica-sin-epi', '04-garantia-real-y-publico', '10-declaracion-desde-solicitud'];
 
@@ -61,10 +61,10 @@ test('control de calidad: detecta partes cruzadas', () => {
 
 test('paquete: rechaza variables no permitidas y alternativas entre corchetes', () => {
   const pack = JSON.parse(readFileSync(new URL('../packs/concurso-sin-masa.v1.json', import.meta.url), 'utf8'));
-  assert.deepEqual(validarPack(pack), []);
+  assert.deepEqual(validarPack(pack, { variablesPermitidas: knowledge.getRedactionProfile('conclusion').variables_permitidas }), []);
   const malo = copia(pack);
   malo.bloques[0].texto += ' {{inventada}} [a / b]';
-  const errs = validarPack(malo).join('\n');
+  const errs = validarPack(malo, { variablesPermitidas: knowledge.getRedactionProfile('conclusion').variables_permitidas }).join('\n');
   assert.ok(errs.includes('inventada') && errs.includes('corchetes'));
 });
 
