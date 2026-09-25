@@ -23,7 +23,7 @@ if (!nombre) {
 const source = JSON.parse(readFileSync(KNOWLEDGE_CONCURSAL_CSM, 'utf8'));
 const runtime = prepareKnowledgeRuntime(source);
 const pack = runtime.redactionPack(cual);
-const errores = validarPack(pack);
+const errores = validarPack(pack, { variablesPermitidas: source.gobernanza.redaccion[cual].variables_permitidas });
 if (errores.length) {
   console.error(`No se puede ratificar:\n- ${errores.join('\n- ')}`);
   process.exit(1);
