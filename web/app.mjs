@@ -247,7 +247,13 @@ document.addEventListener('click', async (ev) => {
     return;
   }
   const uploadBtn = ev.target.closest('[data-trigger-upload], #nuevo-procedimiento');
-  if (uploadBtn) { ev.preventDefault(); $('fichero').click(); return; }
+  if (uploadBtn) {
+    ev.preventDefault();
+    if (estado.appView === 'workspace') await guardarCasoAhora().catch(() => {});
+    setAppView('dashboard');
+    $('fichero').click();
+    return;
+  }
 
   const openBtn = ev.target.closest('[data-open-case]');
   if (openBtn) { ev.preventDefault(); await abrirCaso(openBtn.dataset.openCase); return; }
