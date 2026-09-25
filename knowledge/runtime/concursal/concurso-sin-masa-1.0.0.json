@@ -337,7 +337,19 @@
           "fecha": null,
           "hash_bloques": null,
           "nota": "Versión desarrollada pendiente de revisión y ratificación judicial."
-        }
+        },
+        "variables_permitidas": [
+          "fecha_solicitud",
+          "deudor",
+          "nif",
+          "domicilio",
+          "insolvencia",
+          "supuesto",
+          "supuesto_letra",
+          "supuesto_texto",
+          "numero_acreedores",
+          "total_pasivo"
+        ]
       },
       "conclusion": {
         "pack_id": "concurso-sin-masa",
@@ -349,7 +361,16 @@
           "fecha": null,
           "hash_bloques": null,
           "nota": "Ningún bloque es definitivo hasta que el magistrado revise su texto y lo ratifique con `npm run ratificar`. Mientras tanto, todo lo generado sale marcado como BORRADOR NO RATIFICADO."
-        }
+        },
+        "variables_permitidas": [
+          "fecha_declaracion",
+          "fecha_solicitud",
+          "deudor",
+          "total_pasivo",
+          "total_exonerado",
+          "total_no_exonerado",
+          "detalle_credito_publico"
+        ]
       }
     }
   },
