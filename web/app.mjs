@@ -8,7 +8,11 @@ import { lecturaAExpedienteDeclaracion, declaracionAExpedienteConclusion, DATOS_
 import { generarAutoDeclaracion } from '/src/declaracion.mjs';
 import { generarAutoConclusion } from '/src/motor.mjs';
 import { loadKnowledgeRuntimeFromUrl } from '/src/core/knowledge/browser-loader.mjs';
+import { prepareKnowledgeRuntime } from '/src/core/knowledge/runtime.mjs';
+import { createKnowledgeRegistry } from '/src/core/knowledge/registry.mjs';
 import { creditClassIds } from '/src/core/knowledge/credit-engine.mjs';
+import { adaptPersonaFisicaKnowledgeSource, personaFisicaKnowledgeSummary } from '/src/adapters/concursal/knowledge-persona-fisica.mjs';
+import { documentoATextoMarcado, fusionarLecturaConIA } from '/src/adapters/concursal/ai-extraction.mjs';
 import { listProcedimientos, getProcedimiento, putProcedimiento, deleteProcedimiento, findBySourceHash } from '/web/case-store.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
@@ -18,8 +22,18 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const euros = (n) => (n == null || n === '' ? '—' : Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €');
 const CLAVE_JUZGADO = 'csm.datos_juzgado.v1';
+const CLAVE_EXTRACTOR_IA = 'csm.extractor_ia.v1';
 const SAVE_DELAY = 350;
-const knowledge = await loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json');
+const [knowledge, sourceKnowledgeRaw] = await Promise.all([
+  loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json'),
+  fetch('/knowledge/source/concursal/kb-concurso-persona-fisica-1.0.0.json', { cache: 'no-store' }).then((r) => {
+    if (!r.ok) throw new Error(`No se ha podido cargar el Knowledge de persona física (${r.status}).`);
+    return r.json();
+  })
+]);
+const personaFisicaKnowledge = prepareKnowledgeRuntime(adaptPersonaFisicaKnowledgeSource(sourceKnowledgeRaw));
+const knowledgeRegistry = createKnowledgeRegistry([knowledge, personaFisicaKnowledge]);
+const knowledgeSummary = personaFisicaKnowledgeSummary(sourceKnowledgeRaw);
 
 const estado = {
   lectura: null,
@@ -30,6 +44,10 @@ const estado = {
   currentCase: null,
   cases: [],
   knowledge,
+  personaFisicaKnowledge,
+  knowledgeRegistry,
+  knowledgeSummary,
+  sourceKnowledgeRaw,
   activeTab: 'resumen',
   appView: 'dashboard',
   saveTimer: null
@@ -209,7 +227,7 @@ document.addEventListener('change', (ev) => {
 // ---------- navegación ----------
 function setAppView(view) {
   estado.appView = view;
-  ['dashboard', 'procedimientos', 'workspace'].forEach((id) => {
+  ['dashboard', 'procedimientos', 'knowledge', 'workspace'].forEach((id) => {
     $('view-' + id)?.classList.toggle('oculto', id !== view);
   });
   document.querySelectorAll('[data-app-view]').forEach((b) => {
@@ -221,6 +239,10 @@ function setAppView(view) {
   } else if (view === 'procedimientos') {
     $('topbar-title').textContent = 'Procedimientos';
     $('topbar-subtitle').textContent = 'Expedientes locales y estado de tramitación';
+  } else if (view === 'knowledge') {
+    $('topbar-title').textContent = 'Knowledge';
+    $('topbar-subtitle').textContent = 'Conocimiento jurídico separado del Legal Core';
+    pintarKnowledge();
   } else if (view === 'workspace') {
     $('topbar-title').textContent = casoTitulo(estado.currentCase);
     $('topbar-subtitle').textContent = 'Expediente concursal · entorno local de tramitación';
@@ -297,13 +319,43 @@ $('fichero').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
+async function extraerSolicitudConIA(doc) {
+  const response = await fetch('/.netlify/functions/extract-solicitud', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ document_text: documentoATextoMarcado(doc) })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload?.error?.message || `Extractor IA HTTP ${response.status}`);
+    error.code = payload?.error?.code || 'AI_EXTRACTION_ERROR';
+    throw error;
+  }
+  return payload;
+}
+
 async function leerNuevaSolicitud(fichero) {
   const status = $('upload-status');
   status.innerHTML = '<p class="nota loading-note">Leyendo y estructurando la solicitud…</p>';
   try {
     if (!/\.pdf$/i.test(fichero.name) && fichero.type !== 'application/pdf') throw new Error('El fichero no es un PDF.');
     const texto = await extraerTextoPdf(new Uint8Array(await fichero.arrayBuffer()), getDocument);
-    const lectura = leerSolicitud(texto, { nombre_fichero: fichero.name });
+    const determinista = leerSolicitud(texto, { nombre_fichero: fichero.name });
+    let lectura = determinista;
+    let extractionMode = 'deterministic';
+    let extractionError = null;
+    const useAi = $('ai-extraction-toggle')?.checked === true;
+    if (useAi) {
+      status.innerHTML = '<p class="nota loading-note">Lectura local terminada · estructurando los datos con IA…</p>';
+      try {
+        const assisted = await extraerSolicitudConIA(texto);
+        lectura = fusionarLecturaConIA(determinista, assisted.proposal, { provider: assisted.provider, model: assisted.model });
+        extractionMode = 'hybrid_ai';
+      } catch (error) {
+        extractionError = { code: error.code || 'AI_EXTRACTION_ERROR', message: error.message };
+        status.innerHTML = `<ul class="alertas"><li class="aviso">La IA no está disponible: se continúa con la lectura determinista. ${esc(error.message)}</li></ul>`;
+      }
+    }
 
     const duplicado = await findBySourceHash(lectura.hash_texto);
     if (duplicado && confirm('Esta solicitud ya figura en el panel. ¿Abrir el procedimiento existente?')) {
@@ -318,13 +370,13 @@ async function leerNuevaSolicitud(fichero) {
       id: crearId(lectura),
       createdAt,
       updatedAt: createdAt,
-      source: { name: fichero.name, size: fichero.size, lastModified: fichero.lastModified, hash: lectura.hash_texto },
+      source: { name: fichero.name, size: fichero.size, lastModified: fichero.lastModified, hash: lectura.hash_texto, extraction_mode: extractionMode, extraction_error: extractionError },
       lectura: plain(lectura),
       expediente: plain(expediente),
       conclusion: null,
       resultadoDeclaracion: null,
       resultadoConclusion: null,
-      activity: [actividad('upload', 'Solicitud incorporada', `${fichero.name} · lectura determinista completada`)]
+      activity: [actividad('upload', 'Solicitud incorporada', `${fichero.name} · ${extractionMode === 'hybrid_ai' ? 'extracción híbrida IA + lector local' : 'lectura determinista'}`)]
     };
     await putProcedimiento(record);
     status.innerHTML = '';
@@ -333,6 +385,32 @@ async function leerNuevaSolicitud(fichero) {
   } catch (err) {
     status.innerHTML = `<ul class="alertas"><li class="bloqueo">No se ha podido leer el PDF: ${esc(err.message)}</li></ul>`;
   }
+}
+
+// ---------- Knowledge ----------
+function pintarKnowledge() {
+  const s = estado.knowledgeSummary;
+  const raw = estado.sourceKnowledgeRaw;
+  if (!$('knowledge-summary')) return;
+  $('knowledge-summary').innerHTML = `
+    <section class="knowledge-hero-card">
+      <div><span class="judicial-kicker">Fuente incorporada</span><h2>${esc(raw.meta?.titulo || 'Knowledge concursal')}</h2><p>Versión ${esc(s.version || '—')} · corte normativo ${esc(s.fecha_corte_normativa || '—')} · cargado como pack independiente del motor.</p></div>
+      <span class="knowledge-state">Pendiente de certificación</span>
+    </section>
+    <section class="knowledge-metrics">
+      <article><span>Normas</span><strong>${s.normas}</strong></article>
+      <article><span>Reglas</span><strong>${s.reglas}</strong><small>${s.automaticas} automáticas · ${s.mixtas} mixtas · ${s.valoracion_judicial} judiciales</small></article>
+      <article><span>Fases</span><strong>${s.fases}</strong></article>
+      <article><span>Resoluciones</span><strong>${s.resoluciones}</strong></article>
+      <article><span>Fundamentos tipo</span><strong>${s.fundamentos_tipo}</strong></article>
+      <article><span>Pendiente verificar</span><strong class="${s.pendiente_verificar ? 'is-attention' : ''}">${s.pendiente_verificar}</strong></article>
+    </section>`;
+
+  const modules = Object.entries((raw.reglas || []).reduce((acc, rule) => {
+    const key = rule.modulo || 'otros'; acc[key] = (acc[key] || 0) + 1; return acc;
+  }, {})).sort((a,b) => b[1] - a[1]);
+  $('knowledge-modules').innerHTML = modules.map(([name, count]) => `<article class="knowledge-module"><span>${esc(name.replaceAll('_',' '))}</span><b>${count}</b></article>`).join('');
+  $('knowledge-warnings').innerHTML = (raw.meta?.advertencias || []).map((warning) => `<li>${esc(warning)}</li>`).join('');
 }
 
 // ---------- dashboard y listado ----------
@@ -760,5 +838,10 @@ function pintarTodo() {
 }
 
 // ---------- inicio ----------
+try { $('ai-extraction-toggle').checked = localStorage.getItem(CLAVE_EXTRACTOR_IA) === 'true'; } catch {}
+$('ai-extraction-toggle')?.addEventListener('change', (event) => {
+  try { localStorage.setItem(CLAVE_EXTRACTOR_IA, event.target.checked ? 'true' : 'false'); } catch {}
+});
+pintarKnowledge();
 await cargarCasos();
 setAppView('dashboard');
