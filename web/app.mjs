@@ -15,6 +15,8 @@ import { adaptPersonaFisicaKnowledgeSource, personaFisicaKnowledgeSummary } from
 import { fusionarLecturaConIA } from '/src/adapters/concursal/ai-extraction.mjs';
 import { anonimizarDocumentoConcursal } from '/src/adapters/concursal/anonymize-document.mjs';
 import { buildSafeCaseSnapshot, buildKnowledgeContext, validateSafeCaseSnapshot, relevantKnowledgeModules } from '/src/adapters/concursal/ai-tools.mjs';
+import { evaluarIndicadoresBuenaFe } from '/src/adapters/concursal/good-faith.mjs';
+import { buildConcursalFamilies, buildConcursalReport, buildReviewQueue, buildLearningSummary, concursalTags } from '/src/adapters/concursal/insights.mjs';
 import { listProcedimientos, getProcedimiento, putProcedimiento, deleteProcedimiento, findBySourceHash } from '/web/case-store.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
@@ -234,7 +236,7 @@ document.addEventListener('change', (ev) => {
 // ---------- navegación ----------
 function setAppView(view) {
   estado.appView = view;
-  ['dashboard', 'procedimientos', 'knowledge', 'workspace'].forEach((id) => {
+  ['dashboard', 'review', 'procedimientos', 'families', 'reports', 'learnings', 'knowledge', 'workspace'].forEach((id) => {
     $('view-' + id)?.classList.toggle('oculto', id !== view);
   });
   document.querySelectorAll('[data-app-view]').forEach((b) => {
@@ -243,9 +245,21 @@ function setAppView(view) {
   if (view === 'dashboard') {
     $('topbar-title').textContent = 'Bandeja concursal';
     $('topbar-subtitle').textContent = 'Procedimientos guardados únicamente en este navegador';
+  } else if (view === 'review') {
+    $('topbar-title').textContent = 'Para revisar';
+    $('topbar-subtitle').textContent = 'Decisiones pendientes, incidencias y señales de buena fe';
   } else if (view === 'procedimientos') {
     $('topbar-title').textContent = 'Procedimientos';
     $('topbar-subtitle').textContent = 'Expedientes locales y estado de tramitación';
+  } else if (view === 'families') {
+    $('topbar-title').textContent = 'Familias';
+    $('topbar-subtitle').textContent = 'Patrones de asuntos sin propagación automática de criterio';
+  } else if (view === 'reports') {
+    $('topbar-title').textContent = 'Informes';
+    $('topbar-subtitle').textContent = 'Actividad y composición de la bandeja local';
+  } else if (view === 'learnings') {
+    $('topbar-title').textContent = 'Aprendizajes';
+    $('topbar-subtitle').textContent = 'Correcciones humanas para mejorar extracción y Knowledge';
   } else if (view === 'knowledge') {
     $('topbar-title').textContent = 'Knowledge';
     $('topbar-subtitle').textContent = 'Conocimiento jurídico separado del Legal Core';
@@ -528,10 +542,20 @@ async function cargarCasos() {
   estado.cases = await listProcedimientos();
   pintarDashboard();
   pintarProcedimientos();
+  pintarReviewView();
+  pintarFamiliesView();
+  pintarReportsView();
+  pintarLearningsView();
   const counter = $('nav-case-count');
   if (counter) {
     counter.textContent = estado.cases.length;
     counter.classList.toggle('oculto', !estado.cases.length);
+  }
+  const reviewCounter = $('nav-review-count');
+  if (reviewCounter) {
+    const count = buildReviewQueue(estado.cases).length;
+    reviewCounter.textContent = count;
+    reviewCounter.classList.toggle('oculto', !count);
   }
 }
 
@@ -600,6 +624,82 @@ function pintarProcedimientos() {
 }
 $('case-search').addEventListener('input', pintarProcedimientos);
 $('case-filter').addEventListener('change', pintarProcedimientos);
+
+function buenaFeLabel(estadoBF) {
+  return ({
+    prioridad_alta: ['Revisión prioritaria', 'high'],
+    revisar: ['Revisar buena fe', 'medium'],
+    senal_debil: ['Señal débil', 'low'],
+    sin_indicios_detectados: ['Sin indicios automáticos', 'neutral']
+  })[estadoBF] || ['Revisar', 'neutral'];
+}
+
+function pintarReviewView() {
+  if (!$('review-view')) return;
+  const queue = buildReviewQueue(estado.cases);
+  $('review-view').innerHTML = queue.length ? `
+    <div class="review-list">${queue.map(({caso,goodFaith,needsDecision}) => {
+      const [label,tone] = buenaFeLabel(goodFaith.estado);
+      return `<article class="review-row">
+        <button data-open-case="${esc(caso.id)}">
+          <span class="review-priority tone-${tone}">!</span>
+          <span class="review-main"><b>${esc(casoTitulo(caso))}</b><small>${esc(casoSubtitulo(caso))}</small></span>
+          <span class="review-reasons">${needsDecision ? '<em>decisión pendiente</em>' : ''}${goodFaith.estado !== 'sin_indicios_detectados' ? `<em class="tone-${tone}">${esc(label)}</em>` : ''}</span>
+          <span>→</span>
+        </button>
+      </article>`;
+    }).join('')}</div>` : emptyList('No hay asuntos que requieran una revisión especial.');
+}
+
+function pintarFamiliesView() {
+  if (!$('families-view')) return;
+  const families = buildConcursalFamilies(estado.cases);
+  $('families-view').innerHTML = families.length ? `<div class="families-grid">${families.map((family) => `
+    <article class="family-card">
+      <header><div><span class="judicial-kicker">Familia</span><h3>${esc(family.label)}</h3></div><strong>${family.total}</strong></header>
+      <div class="family-stats"><span>${family.generated} con resolución</span><span>${family.pending} pendientes</span><span>${euros(family.pasivo)} pasivo</span></div>
+      <div class="family-cases">${family.cases.slice(0,6).map((caso)=>`<button data-open-case="${esc(caso.id)}"><span>${esc(casoTitulo(caso))}</span><small>${euros(caso.expediente?.solicitud?.pasivo_declarado)}</small></button>`).join('')}</div>
+      ${family.cases.length>6 ? `<small class="family-more">+${family.cases.length-6} asuntos más</small>` : ''}
+    </article>`).join('')}</div>` : emptyList('Las familias aparecerán cuando incorpores procedimientos.');
+}
+
+function pintarReportsView() {
+  if (!$('reports-view')) return;
+  const report = buildConcursalReport(estado.cases);
+  const tagCounts = new Map();
+  for (const caso of estado.cases) for (const tag of concursalTags(caso)) tagCounts.set(tag,(tagCounts.get(tag)||0)+1);
+  const tags=[...tagCounts.entries()].sort((a,b)=>b[1]-a[1]);
+  $('reports-view').innerHTML = `
+    <section class="report-kpis">
+      <article><span>Procedimientos</span><b>${report.total}</b></article>
+      <article><span>Autos declaración</span><b>${report.declaracion_generada}</b></article>
+      <article><span>Conclusiones</span><b>${report.conclusion_generada}</b></article>
+      <article><span>Con EPI</span><b>${report.epi}</b></article>
+      <article><span>Con crédito público</span><b>${report.credito_publico}</b></article>
+      <article><span>Pasivo total</span><b>${euros(report.pasivo_total)}</b></article>
+    </section>
+    <div class="report-grid">
+      <section class="judicial-section-card report-panel"><div class="judicial-section-heading"><div><div class="judicial-kicker">Composición</div><h2>Familias jurídicas</h2></div></div>
+        <div class="report-bars">${tags.length ? tags.map(([tag,count])=>`<div><span>${esc(tag)}</span><div><i style="width:${report.total ? Math.max(5,(count/report.total)*100) : 0}%"></i></div><b>${count}</b></div>`).join('') : '<p class="judicial-mini-empty">Sin datos todavía.</p>'}</div>
+      </section>
+      <section class="judicial-section-card report-panel"><div class="judicial-section-heading"><div><div class="judicial-kicker">Magnitudes</div><h2>Expediente medio</h2></div></div>
+        <div class="report-facts"><div><span>Pasivo medio</span><b>${euros(report.pasivo_medio)}</b></div><div><span>Acreedores por asunto</span><b>${report.acreedores_medio.toFixed(1)}</b></div><div><span>Garantía real</span><b>${report.garantia_real}</b></div><div><span>Última actividad</span><b>${fmtDate(report.ultima_actividad)}</b></div></div>
+      </section>
+    </div>`;
+}
+
+function pintarLearningsView() {
+  if (!$('learnings-view')) return;
+  const learning=buildLearningSummary(estado.cases);
+  const labels={deudor:'Nombre deudor',nif:'NIF/NIE',domicilio:'Domicilio',pasivo:'Pasivo',activo:'Activo',acreedores:'N.º acreedores',clase_credito:'Clase crédito'};
+  const entries=Object.entries(learning.counters).sort((a,b)=>b[1]-a[1]);
+  $('learnings-view').innerHTML = `
+    <section class="learning-intro"><span class="judicial-kicker">Aprendizaje supervisado</span><h2>Qué corrige el usuario después de la extracción</h2><p>Estas correcciones sirven para saber dónde falla el extractor. No modifican automáticamente reglas, prompts ni Knowledge.</p></section>
+    <section class="learning-metrics">${entries.map(([key,count])=>`<article><span>${esc(labels[key]||key)}</span><b>${count}</b><small>correcciones detectadas</small></article>`).join('')}</section>
+    <section class="judicial-section-card"><div class="judicial-section-heading"><div><div class="judicial-kicker">Casos corregidos</div><h2>Ejemplos recientes</h2></div></div>
+      <div class="learning-examples">${learning.examples.length ? learning.examples.map((x)=>`<button data-open-case="${esc(x.id)}"><b>${esc(x.titulo)}</b><span>${esc(x.changed.join(' · '))}</span><em>Abrir →</em></button>`).join('') : '<div class="judicial-mini-empty">Todavía no se han detectado correcciones respecto de la lectura original.</div>'}</div>
+    </section>`;
+}
 
 // ---------- abrir expediente ----------
 async function abrirCaso(id) {
