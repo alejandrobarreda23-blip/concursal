@@ -48,7 +48,7 @@ export function construirIR({ expediente, fase, clasificacion, pack, knowledge =
   };
 
   const variables = {
-    deudor: text(exp.deudor.nombre),
+    deudor: text(exp.deudor?.nombre) || '____________________',
     fecha_declaracion: fechaLarga(exp.tramite.auto_declaracion_sin_masa.fecha),
     fecha_solicitud: exp.tramite.solicitud_epi ? fechaLarga(exp.tramite.solicitud_epi.fecha) : null,
     total_pasivo: formatoEuros(clasificacion.totales.pasivo),
