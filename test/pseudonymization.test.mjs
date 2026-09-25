@@ -26,6 +26,7 @@ test('anonimización local: identificadores y nombres no salen en el texto para 
     'Correo: juan.perez@example.com. Teléfono 612 345 678.',
     'Cuenta ES91 2100 0418 4502 0005 1332.',
     'Procuradora María López Ruiz y abogado Carlos Martín Soler.',
+    'Firmado por ANA TORRES BLANCO.',
     'Acreedores: Banco Ejemplo, S.A. 10.000 euros; Pedro García León 2.000 euros.'
   ].join('\n'));
 
@@ -33,7 +34,7 @@ test('anonimización local: identificadores y nombres no salen en el texto para 
   for (const raw of [
     'Juan Pérez Gómez','12345678-Z','12345678Z','Calle Ejemplo 12',
     'Sevilla','juan.perez@example.com','612 345 678',
-    'ES91 2100 0418 4502 0005 1332','María López Ruiz','Carlos Martín Soler','Pedro García León'
+    'ES91 2100 0418 4502 0005 1332','María López Ruiz','Carlos Martín Soler','ANA TORRES BLANCO','Pedro García León'
   ]) assert.equal(privacy.text.includes(raw), false, raw);
 
   assert.equal(detectDirectIdentifiers(privacy.text).length, 0);
