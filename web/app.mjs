@@ -5,10 +5,10 @@ import * as pdfjs from '/node_modules/pdfjs-dist/build/pdf.mjs';
 import { extraerTextoPdf } from '/src/lector/texto-pdf.mjs';
 import { leerSolicitud } from '/src/lector/lector.mjs';
 import { lecturaAExpedienteDeclaracion, declaracionAExpedienteConclusion, DATOS_JUZGADO_VACIOS } from '/src/lector/a-expediente.mjs';
-import { generarAutoDeclaracion, SUPUESTOS_37_BIS } from '/src/declaracion.mjs';
+import { generarAutoDeclaracion } from '/src/declaracion.mjs';
 import { generarAutoConclusion } from '/src/motor.mjs';
-import { prepararPack } from '/src/bloques.mjs';
-import { CLASES_CREDITO } from '/src/validar-expediente.mjs';
+import { loadKnowledgeRuntimeFromUrl } from '/src/core/knowledge/browser-loader.mjs';
+import { creditClassIds } from '/src/core/knowledge/credit-engine.mjs';
 import { listProcedimientos, getProcedimiento, putProcedimiento, deleteProcedimiento, findBySourceHash } from '/web/case-store.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
@@ -19,6 +19,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const euros = (n) => (n == null || n === '' ? '—' : Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €');
 const CLAVE_JUZGADO = 'csm.datos_juzgado.v1';
 const SAVE_DELAY = 350;
+const knowledge = await loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json');
 
 const estado = {
   lectura: null,
@@ -28,7 +29,7 @@ const estado = {
   resultadoConclusion: null,
   currentCase: null,
   cases: [],
-  packs: {},
+  knowledge,
   activeTab: 'resumen',
   appView: 'dashboard',
   saveTimer: null
@@ -45,12 +46,8 @@ const fmtDateTime = (value) => {
   return Number.isNaN(d.getTime()) ? '—' : new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d);
 };
 
-async function pack(nombre) {
-  if (!estado.packs[nombre]) {
-    const r = await fetch(`/packs/${nombre}.v1.json`, { cache: 'no-store' });
-    estado.packs[nombre] = prepararPack(await r.json());
-  }
-  return estado.packs[nombre];
+function pack(nombre) {
+  return estado.knowledge.redactionPack(nombre === 'declaracion-sin-masa' ? 'declaracion' : 'conclusion');
 }
 
 // ---------- dominio UI del procedimiento ----------
@@ -71,7 +68,8 @@ function estadoProcedimiento(caso) {
   if ((l.alertas || []).some((a) => a.nivel === 'bloqueo')) return 'bloqueado';
   if (!e.deudor?.nombre || !e.deudor?.nif || !e.deudor?.domicilio || !e.creditos?.length) return 'pendiente_decision';
   const d = e.decision_judicial || {};
-  if (d.competencia_verificada === true && d.insolvencia_apreciada === true && SUPUESTOS_37_BIS[String(d.supuesto_37_bis)]) return 'listo_auto';
+  const supuestos = estado.knowledge.getCatalog('supuesto_37_bis') || {};
+  if (d.competencia_verificada === true && d.insolvencia_apreciada === true && supuestos[String(d.supuesto_37_bis)]) return 'listo_auto';
   return 'pendiente_decision';
 }
 
@@ -550,7 +548,7 @@ function pintarCampos() {
 function pintarAcreedores() {
   const filas = estado.expediente.creditos;
   const lectura = new Map(estado.lectura.acreedores.map((a) => [a.id, a]));
-  const opc = CLASES_CREDITO.map((c) => `<option value="${c}">${c.replace(/_/g, ' ')}</option>`).join('');
+  const opc = creditClassIds(estado.knowledge).map((c) => `<option value="${c}">${c.replace(/_/g, ' ')}</option>`).join('');
   $('acreedores').innerHTML = `<div class="tabla-scroll"><table>
     <thead><tr><th>Id</th><th>Acreedor</th><th>NIF</th><th>Concepto</th><th>Clase</th><th>Importe (€)</th><th>Valor garantía (€)</th><th></th></tr></thead>
     <tbody>${filas.map((f, i) => {
@@ -620,11 +618,11 @@ function pintarJuzgado() {
 function pintarDecision() {
   const d = estado.expediente.decision_judicial;
   d.sentido ??= 'declarar_sin_masa';
-  const letras = { '1': 'a)', '2': 'b)', '3': 'c)', '4': 'd)' };
+  const supuestos = estado.knowledge.getCatalog('supuesto_37_bis') || {};
   $('decision').innerHTML = [
     campo({ etiqueta: 'Soy competente (territorial y objetivamente)', ruta: 'decision_judicial.competencia_verificada', tipo: 'check' }),
     campo({ etiqueta: 'Aprecio la insolvencia alegada', ruta: 'decision_judicial.insolvencia_apreciada', tipo: 'check' }),
-    campo({ etiqueta: 'Supuesto del art. 37 bis TRLC', ruta: 'decision_judicial.supuesto_37_bis', tipo: 'entero', opciones: [['', '— elija —'], ...Object.entries(SUPUESTOS_37_BIS).map(([k, t]) => [k, `${letras[k]} ${t}`])], fuente: false })
+    campo({ etiqueta: 'Supuesto del art. 37 bis TRLC', ruta: 'decision_judicial.supuesto_37_bis', tipo: 'entero', opciones: [['', '— elija —'], ...Object.entries(supuestos).map(([k, v]) => [k, `${v.codigo}) ${v.texto}`])], fuente: false })
   ].join('');
 }
 
@@ -685,7 +683,7 @@ function alertaEn(destino, texto) { $(destino).insertAdjacentHTML('beforeend', `
 
 $('generar-declaracion').onclick = async () => {
   const exp = plain(estado.expediente);
-  const r = generarAutoDeclaracion(exp, { pack: await pack('declaracion-sin-masa') });
+  const r = generarAutoDeclaracion(exp, { knowledge: estado.knowledge, pack: pack('declaracion-sin-masa') });
   pintarResultado('resultado-declaracion', r, `auto-declaracion-${(exp.procedimiento.numero || 'sin-numero').replace(/\W+/g, '-')}`, exp);
   if (r.texto) {
     estado.resultadoDeclaracion = plain(r);
@@ -728,7 +726,7 @@ function pintarConclusion() {
 
 $('generar-conclusion').onclick = async () => {
   const exp = plain(estado.conclusion);
-  const r = generarAutoConclusion(exp, { pack: await pack('concurso-sin-masa') });
+  const r = generarAutoConclusion(exp, { knowledge: estado.knowledge, pack: pack('concurso-sin-masa') });
   pintarResultado('resultado-conclusion', r, `auto-conclusion-${(exp.procedimiento.numero || 'sin-numero').replace(/\W+/g, '-')}`, exp);
   if (r.texto) {
     estado.resultadoConclusion = plain(r);
