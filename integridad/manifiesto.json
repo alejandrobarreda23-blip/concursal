@@ -39,6 +39,12 @@
     "knowledge/runtime/manifest.json": "926d2f387388896798216afd51d1d1e35d38925847701696c4f28d22868fd8c1",
     "src/core/human-decision-boundary.mjs": "b1dbbc5748d654caf26b59f724b471817034e94d0318585dff6cd04cdff5698c",
     "src/core/knowledge/browser-loader.mjs": "3c8d5ced1cc26148d4ce90b74d95d572ba7654360bf20815341d8709235f0da8",
-    "src/core/knowledge/contracts.mjs": "c7b78a4f1a57649ceeec3c7c592582485ca2b2489eda022d37cfa4ca1a199d07"
+    "src/core/knowledge/contracts.mjs": "c7b78a4f1a57649ceeec3c7c592582485ca2b2489eda022d37cfa4ca1a199d07",
+    "src/core/knowledge/credit-engine.mjs": "cd3e78c98bcae655a3ec126d53b86c5d9ab0a00a2a987dcdf7a592b23b45c6a2",
+    "src/core/knowledge/index.mjs": "87f57b8e28ac7afdaa163c8a393079aa72b5c2a3d4b6aef1cb35eb0e60cadf89",
+    "src/core/knowledge/node-loader.mjs": "0333de7ac2c18d50d5f83760296ff6c846d540c10f260cb52f9fd87c39bab22d",
+    "src/core/knowledge/registry.mjs": "b3fb80fbf939bb842afdce6e12af332b7fc07a882091be1042d412e14c800474",
+    "src/core/knowledge/result-policy.mjs": "a634d2ee16aa3e8fd9a04224ef8c657cbd6992d5ff45700f463d192197ec5400",
+    "src/core/knowledge/runtime.mjs": "be332e9ed98de5eaa7091532182dff74c39774e259849c943e440f9ce9b6590e"
   }
 }
