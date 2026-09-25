@@ -821,9 +821,22 @@ function pintarCampos() {
 function pintarAcreedores() {
   const filas = estado.expediente.creditos;
   const lectura = new Map(estado.lectura.acreedores.map((a) => [a.id, a]));
-  const opc = creditClassIds(estado.knowledge).map((c) => `<option value="${c}">${c.replace(/_/g, ' ')}</option>`).join('');
-  $('acreedores').innerHTML = `<div class="tabla-scroll"><table>
-    <thead><tr><th>Id</th><th>Acreedor</th><th>NIF</th><th>Concepto</th><th>Clase</th><th>Importe (€)</th><th>Valor garantía (€)</th><th></th></tr></thead>
+  const opc = creditClassIds(estado.knowledge).map((clase) => `<option value="${clase}">${clase.replace(/_/g, ' ')}</option>`).join('');
+  const rangos = [
+    ['', '— no consta —'],
+    ['subordinado', 'Subordinado'],
+    ['ordinario', 'Ordinario'],
+    ['privilegio_general', 'Privilegio general'],
+    ['privilegio_especial', 'Privilegio especial'],
+    ['contra_masa', 'Contra la masa']
+  ];
+  const opcionesRango = (value) => rangos.map(([v, label]) => `<option value="${v}" ${String(value || '') === v ? 'selected' : ''}>${label}</option>`).join('');
+
+  $('acreedores').innerHTML = `<div class="credit-guidance">
+    <b>Crédito público</b><span>Para aplicar correctamente la exoneración por acreedor, indique la clase concursal y, si hay varios créditos de la misma clase, su fecha de origen. Los subordinados se tratan separadamente.</span>
+  </div>
+  <div class="tabla-scroll"><table>
+    <thead><tr><th>Id</th><th>Acreedor</th><th>NIF</th><th>Concepto</th><th>Tipo</th><th>Rango concursal</th><th>Antigüedad</th><th>Importe (€)</th><th>Garantía (€)</th><th></th></tr></thead>
     <tbody>${filas.map((f, i) => {
       const src = lectura.get(f.id)?.fuente;
       return `<tr title="${esc(src ? `p. ${src.pagina}, l. ${src.linea}: ${src.texto}` : 'Añadido a mano')}">
@@ -832,6 +845,8 @@ function pintarAcreedores() {
         <td><input data-raiz="expediente" data-ruta="creditos.${i}.nif" value="${esc(f.nif ?? '')}"></td>
         <td><input data-raiz="expediente" data-ruta="creditos.${i}.concepto" value="${esc(f.concepto)}"></td>
         <td><select data-raiz="expediente" data-ruta="creditos.${i}.clase">${opc.replace(`value="${f.clase}"`, `value="${f.clase}" selected`)}</select></td>
+        <td><select data-raiz="expediente" data-ruta="creditos.${i}.rango_concursal">${opcionesRango(f.rango_concursal)}</select></td>
+        <td><input type="date" data-raiz="expediente" data-ruta="creditos.${i}.fecha_origen" value="${esc(f.fecha_origen ?? '')}"></td>
         <td class="num-col"><input data-raiz="expediente" data-ruta="creditos.${i}.importe" data-tipo="numero" value="${esc(f.importe ?? '')}"></td>
         <td class="num-col"><input data-raiz="expediente" data-ruta="creditos.${i}.valor_garantia" data-tipo="numero" value="${esc(f.valor_garantia ?? '')}" ${f.clase === 'garantia_real' ? '' : 'placeholder="—"'}></td>
         <td><button class="enlace" data-quitar="${i}" aria-label="Quitar ${esc(f.acreedor)}">Quitar</button></td></tr>`;
@@ -841,7 +856,7 @@ function pintarAcreedores() {
   $('anadir-acreedor').onclick = () => {
     const n = estado.expediente.creditos.length + 1;
     let id = `C${n}`; while (estado.expediente.creditos.some((c) => c.id === id)) id += 'b';
-    estado.expediente.creditos.push({ id, acreedor: '', nif: '', concepto: '', importe: null, clase: 'ordinario' });
+    estado.expediente.creditos.push({ id, acreedor: '', nif: '', concepto: '', importe: null, clase: 'ordinario', rango_concursal: '', fecha_origen: '' });
     invalidarResultados('expediente'); pintarAcreedores(); programarGuardado(); pintarCaseHeader(); pintarOverview();
   };
   document.querySelectorAll('[data-quitar]').forEach((b) => { b.onclick = () => {
