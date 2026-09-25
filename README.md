@@ -144,9 +144,11 @@ El pack importado aporta normas, reglas JSON Logic, fases, cálculos, plazos, ch
 La lectura del PDF sigue teniendo un extractor local determinista como fallback. Opcionalmente puede activarse una **extracción IA asistida**:
 
 1. PDF.js obtiene el texto y conserva marcadores de página/línea.
-2. El navegador envía únicamente ese texto a una Netlify Function same-origin.
-3. La función llama al proveedor configurado y exige una salida JSON estructurada.
-4. La propuesta de IA se fusiona con la lectura local, conserva evidencia y confianza y queda siempre marcada como `review_required`.
-5. Ninguna salida de extracción puede escribir `decision_judicial`.
+2. **Antes de cualquier envío**, el navegador sustituye localmente nombres de personas, NIF/NIE, domicilios, emails, teléfonos, IBAN y otros identificadores directos por tokens como `[PERSONA_001]` o `[DOMICILIO_001]`.
+3. La tabla de equivalencias permanece sólo en memoria del navegador y **nunca se serializa ni se envía**.
+4. La Netlify Function sólo acepta peticiones con sobre de privacidad válido y aplica un segundo control para rechazar DNI/NIE, emails, IBAN, teléfonos o NSS que hubieran quedado sin anonimizar.
+5. La función llama al proveedor configurado únicamente con el texto pseudonimizado y exige una salida JSON estructurada.
+6. Al volver la respuesta, el navegador rehidrata los tokens localmente y fusiona la propuesta con la lectura determinista.
+7. Ninguna salida de extracción puede escribir `decision_judicial` y todo resultado queda marcado como `review_required`.
 
-La clave del proveedor vive exclusivamente en variables de entorno de Netlify. Si no existe `OPENAI_API_KEY` o el servicio falla, la aplicación continúa con el lector determinista sin bloquear el expediente.
+La clave del proveedor vive exclusivamente en variables de entorno de Netlify. Si falla la anonimización, **no se realiza ninguna llamada al servidor**. Si no existe `OPENAI_API_KEY` o el proveedor no está disponible, la aplicación continúa con el lector determinista sin bloquear el expediente. El modo IA nunca dispone de una opción para enviar el texto original sin anonimizar.

@@ -31,9 +31,9 @@
     "test/golden/04-garantia-real-y-publico.txt": "704a7b517be7ec7e281a8568296478f34cd4256634205f46b9f231a0dd4857f4",
     "test/golden/10-declaracion-desde-solicitud.json": "1abe0b7c9e26aa0365f6a50409f65d7406073cae9f8941ee7fdcbf35fca4caad",
     "test/golden/10-declaracion-desde-solicitud.txt": "45dfe8878dc20255ecaa1601ae08149df59c5d89cc5ed4d037206a5091195c02",
-    "web/app.mjs": "28dada90db8f7d26c130f3e96b589f874a97746773062a2f2994569a40962965",
+    "web/app.mjs": "d1a7ac107ef93e71fef98c97cf894a456209bfda1fad463fc896829cd35c219d",
     "web/estilos.css": "4a44f034bf1782a3012bf9f6629341874aa4516527006cad4ead66f10fcb39ef",
-    "web/index.html": "a47cdb028c90582a25f1bc299b76cf6d01905667aa3697dfab0233eb8b51e6ba",
+    "web/index.html": "5d2ad30b53317d41adda2dfadd4145a75b4139e31e4f94cad590dd71fc9a5d50",
     "web/case-store.mjs": "f36adfeb88f47f23a9a1ab14042a73320ad2a400ab79a2490a6114d6cb3619e3",
     "knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json": "9e3d486d5c238e80b9e5bff09d67de57a578126c82bea227ba289a4b24867f22",
     "knowledge/runtime/manifest.json": "926d2f387388896798216afd51d1d1e35d38925847701696c4f28d22868fd8c1",
@@ -54,6 +54,8 @@
     "src/core/extraction/contracts.mjs": "18b4561f23d62633160878a625e62fd55063e342ee90711f495167c3e35b83a5",
     "src/adapters/concursal/load-knowledge.mjs": "b62c23bc2383c34e68710705fd1861c7fdfea083306db676e60a3cae1020e249",
     "src/core/knowledge/json-logic.mjs": "27ce6184af10c55f4a23fb202cba7eb4ed9f2f968c55d78da42f51a38a56c55f",
-    "src/core/knowledge/rule-engine.mjs": "0dc59f9f2f732289c340765ba995d66a3b75c419f24f73af63c19f022055c442"
+    "src/core/knowledge/rule-engine.mjs": "0dc59f9f2f732289c340765ba995d66a3b75c419f24f73af63c19f022055c442",
+    "src/core/extraction/pseudonymization.mjs": "f1543b66e5d0a2ca24550ea5820cddd7edf3ea3236c598273c33f24ffa61a9f9",
+    "src/adapters/concursal/anonymize-document.mjs": "458e3116462e452505a76b6b75e6b8f327e7013d29aefd3cbdc6363f1ae3bd87"
   }
 }

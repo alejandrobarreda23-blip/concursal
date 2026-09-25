@@ -1,3 +1,4 @@
+import { detectDirectIdentifiers, PSEUDONYMIZATION_VERSION } from '../../src/core/extraction/pseudonymization.mjs';
 const json = (statusCode, body) => ({
   statusCode,
   headers: {
@@ -126,14 +127,30 @@ function outputText(response) {
 
 export async function handler(event) {
   if (event.httpMethod !== 'POST') return json(405, { error: { code: 'METHOD_NOT_ALLOWED', message: 'Use POST.' } });
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return json(503, { error: { code: 'AI_NOT_CONFIGURED', message: 'El extractor IA no está configurado en este entorno.' } });
-
   let body;
   try { body = JSON.parse(event.body || '{}'); }
   catch { return json(400, { error: { code: 'INVALID_JSON', message: 'JSON inválido.' } }); }
 
   const documentText = String(body.document_text || '');
+  const privacy = body.privacy || null;
+  if (
+    privacy?.mode !== 'pseudonymized' ||
+    privacy?.version !== PSEUDONYMIZATION_VERSION ||
+    privacy?.mapping_shared !== false ||
+    privacy?.asserted_no_direct_identifiers !== true
+  ) {
+    return json(422, { error: { code: 'PRIVACY_ENVELOPE_REQUIRED', message: 'La extracción IA sólo admite texto anonimizado localmente.' } });
+  }
+  if (!Number.isInteger(privacy.total_replacements) || privacy.total_replacements < 1 || !/\[(?:PERSONA|NOMBRE_PROPIO|IDENTIFICADOR|DOMICILIO|LOCALIDAD|EMAIL|IBAN|TELEFONO|NSS)_\d{3}\]/.test(documentText)) {
+    return json(422, { error: { code: 'PRIVACY_TOKENS_REQUIRED', message: 'No se detectan pseudónimos locales suficientes. No se enviará el texto al proveedor.' } });
+  }
+  const leaks = detectDirectIdentifiers(documentText);
+  if (leaks.length) {
+    return json(422, { error: { code: 'PRIVACY_GUARD_FAILED', message: 'El texto contiene identificadores directos no anonimizados.', details: leaks } });
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return json(503, { error: { code: 'AI_NOT_CONFIGURED', message: 'El extractor IA no está configurado en este entorno.' } });
   if (documentText.length < 50) return json(400, { error: { code: 'EMPTY_DOCUMENT', message: 'No hay texto suficiente para extraer.' } });
   if (documentText.length > 180000) return json(413, { error: { code: 'DOCUMENT_TOO_LARGE', message: 'El texto supera el límite del extractor.' } });
 
@@ -143,6 +160,8 @@ export async function handler(event) {
     'Tu tarea es exclusivamente documental: extrae hechos expresamente presentes en el texto.',
     'No decidas competencia, insolvencia, buena fe, concurso sin masa ni ninguna otra cuestión reservada al juez.',
     'Si un dato no consta de forma razonablemente identificable, devuelve null y confianza baja.',
+    'El texto ha sido pseudonimizado en el navegador. Trata marcadores como [PERSONA_001], [IDENTIFICADOR_001] o [DOMICILIO_001] como valores opacos.',
+    'Nunca intentes reconstruir, inferir, adivinar o expandir la identidad real detrás de un pseudónimo; devuélvelo exactamente como aparece.',
     'No inventes NIF, importes, documentos ni acreedores.',
     'Para cada dato aporta evidencia con página, línea y cita breve usando los marcadores [p.X l.Y] del texto.',
     'Los importes deben devolverse en euros como número.',
@@ -202,6 +221,12 @@ export async function handler(event) {
     provider: 'openai',
     model,
     response_id: payload.id || null,
+    privacy: {
+      mode: privacy.mode,
+      version: privacy.version,
+      replacements: privacy.replacements || {},
+      total_replacements: privacy.total_replacements
+    },
     proposal
   });
 }
