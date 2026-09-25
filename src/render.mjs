@@ -42,13 +42,16 @@ export function redactar(ir) {
   if (!ir.procedencia.bloques_ratificados) {
     doc.push({ tipo: 'aviso', texto: `BORRADOR NO RATIFICADO — ${ir.procedencia.aviso_ratificacion}` });
   }
+  for (const aviso of ir.advertencias_borrador || []) {
+    doc.push({ tipo: 'aviso', texto: `ADVERTENCIA DE BORRADOR — ${aviso}` });
+  }
   doc.push({ tipo: 'encabezado', texto: `${cab.tribunal}. ${cab.seccion}. Plaza n.º ${cab.plaza}${cab.denominacion_historica ? ` (${cab.denominacion_historica})` : ''}` });
   doc.push({ tipo: 'encabezado', texto: `${cab.procedimiento} — N.I.G.: ${cab.nig}` });
   doc.push({ tipo: 'encabezado', texto: `Parte concursada: ${cab.deudor.nombre}` });
   if (cab.representacion?.procurador) doc.push({ tipo: 'encabezado', texto: `Procurador/a: ${cab.representacion.procurador}` });
   if (cab.representacion?.abogado) doc.push({ tipo: 'encabezado', texto: `Abogado/a: ${cab.representacion.abogado}` });
   doc.push({ tipo: 'titulo', texto: cab.numero_resolucion ? `AUTO N.º ${cab.numero_resolucion}` : 'AUTO' });
-  doc.push({ tipo: 'parrafo', texto: `${cab.juez.cargo}: ${cab.juez.nombre}` });
+  doc.push({ tipo: 'parrafo', texto: `${cab.juez.cargo}: ${cab.juez.nombre || '____________________'}` });
   doc.push({ tipo: 'parrafo', texto: `${cab.localidad}, ${cab.fecha_larga}.` });
 
   for (const seccion of ['antecedentes', 'fundamentos', 'dispositiva']) {
