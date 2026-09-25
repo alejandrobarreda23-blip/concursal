@@ -29,7 +29,7 @@ test('IA 3: snapshot seguro excluye identidad y texto libre de acreedores', () =
     assert.equal(serialized.includes(secret), false, secret);
   }
   assert.equal(validateSafeCaseSnapshot(snapshot).ok, true);
-  assert.deepEqual(snapshot.creditos[0], { id:'C1', clase:'ordinario', importe:10000, valor_garantia:null });
+  assert.deepEqual(snapshot.creditos[0], { id:'C1', clase:'ordinario', rango_concursal:null, fecha_origen:null, importe:10000, valor_garantia:null });
 });
 
 test('IA 3: selecciona sólo módulos de Knowledge plausibles para el expediente', () => {
