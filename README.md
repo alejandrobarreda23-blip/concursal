@@ -1,6 +1,40 @@
 # autos-concurso-sin-masa
 
-Generador **determinista** de borradores de autos de conclusión del **concurso sin masa**, con o sin **exoneración del pasivo insatisfecho (EPI)**, según el TRLC tras la Ley 16/2022.
+**Lector determinista de solicitudes de concurso** y generador de borradores de los autos del **concurso sin masa** (TRLC tras la Ley 16/2022):
+
+1. **Declaración** de concurso sin masa (art. 37 ter), a partir de la solicitud del deudor en PDF.
+2. **Conclusión**, con o sin **exoneración del pasivo insatisfecho (EPI)**, con los mismos datos.
+
+## Uso rápido: arrastrar la solicitud
+
+```bash
+npm install
+npm run app        # abre http://localhost:5174
+```
+
+Arrastre el PDF de la solicitud a la página. El motor:
+
+- **clasifica la petición**: concurso sin masa u ordinario, voluntario o necesario, persona física o jurídica, insolvencia actual o inminente, si pide EPI o plan de pagos, si acompaña el formulario del Anexo I de los Mercantiles de Barcelona;
+- **extrae los datos** del deudor, de la representación, las fechas, el activo y el pasivo declarados y la **relación de acreedores**, indicando la **página y la línea** del PDF de la que sale cada dato;
+- **comprueba** que la suma de los acreedores cuadra con el pasivo declarado y qué documentos del art. 7 TRLC se dicen acompañar, y avisa de todo lo que no encaja.
+
+Usted revisa y corrige, completa los datos del juzgado, marca su decisión (competencia, insolvencia, supuesto del art. 37 bis) y genera el auto de declaración. Después, con el trámite del art. 37 ter hecho, genera el de conclusión. Todo se procesa en su navegador: **el PDF no sale del ordenador**.
+
+Solo lee PDF **con texto** (generados por ordenador). Un escaneado se rechaza con un aviso: leerlo exigiría OCR y dejaría de ser determinista.
+
+Sin la página, por línea de comandos:
+
+```bash
+npm run leer -- solicitud.pdf                               # → salida/solicitud.lectura.json y .expediente.json
+node cli/generar.mjs expediente.json --declaracion --docx   # auto de declaración
+node cli/generar.mjs expediente.json --docx                 # auto de conclusión
+```
+
+Detalle del lector y de sus reglas: `docs/lector.md`.
+
+---
+
+## El motor de autos
 
 No usa IA. Con el mismo expediente produce siempre el mismo auto, con el mismo hash, y deja constancia de por qué. Reaprovecha la arquitectura de `justicia_aeroport` (Programa 26): representación intermedia con hash, catálogo de bloques de redacción ratificables, frontera de decisión humana, funcionamiento *fail-closed* y manifiesto de integridad.
 
@@ -31,7 +65,7 @@ expediente.json ─▶ validar ─▶ máquina de fases ─▶ clasificar crédi
 
 ```bash
 npm install
-npm test                                   # integridad + 26 pruebas
+npm test                                   # integridad + 41 pruebas
 node cli/generar.mjs ejemplos/01-epi-sin-oposicion.json --docx
 npm run ejemplos                           # genera los 4 ejemplos en ./salida
 ```
@@ -58,10 +92,11 @@ Ver `ejemplos/` (todos **ficticios**) y `docs/expediente.md`. Clases de crédito
 
 ## Ratificación de los bloques
 
-Los textos jurídicos están en `packs/concurso-sin-masa.v1.json`. Cada bloque con una nota `verificar` señala qué hay que revisar (citas de artículos, régimen de recursos, si se transcribe la lista del art. 489.1…). Cuando estén revisados:
+Los textos jurídicos están en `packs/declaracion-sin-masa.v1.json` y `packs/concurso-sin-masa.v1.json`. Cada bloque con una nota `verificar` señala qué hay que revisar (citas de artículos, régimen de recursos, si se transcribe la lista del art. 489.1…). Cuando estén revisados:
 
 ```bash
-npm run ratificar -- "Nombre del magistrado"
+npm run ratificar -- "Nombre del magistrado"                     # auto de conclusión
+npm run ratificar -- --pack declaracion "Nombre del magistrado"  # auto de declaración
 npm run golden && npm run integridad && npm test
 ```
 
@@ -73,7 +108,7 @@ Si después se cambia una coma de cualquier bloque, el hash deja de coincidir y 
 
 ## Privacidad
 
-No subas expedientes reales a este repositorio. `.gitignore` excluye `expedientes/` y `*.real.json`.
+No subas solicitudes ni expedientes reales a este repositorio. `.gitignore` excluye `solicitudes/`, `expedientes/`, `*.real.json` y cualquier PDF fuera de `test/fixtures/`. Las solicitudes de prueba son **ficticias** y se generan con `npm run fixtures`.
 
 ## Hoja de ruta
 

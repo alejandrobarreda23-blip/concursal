@@ -5,3 +5,7 @@ salida/
 # Nunca subir expedientes reales
 expedientes/
 *.real.json
+# Solicitudes reales: nunca al repositorio (las de prueba viven en test/fixtures)
+/solicitudes/
+*.pdf
+!/test/fixtures/solicitudes/*.pdf

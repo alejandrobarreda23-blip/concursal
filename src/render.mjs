@@ -22,12 +22,16 @@ function filasTabla(ir, tipo) {
       const parcial = c.exonerado < c.importe ? `de una deuda total de ${formatoEuros(c.importe)}` : '';
       lineas.push({ n, acreedor: c.acreedor, concepto: `${c.concepto}${venc}`, importe: formatoEuros(c.exonerado), nota: parcial.trim() || null });
     }
+    if (tipo === 'pasivo') {
+      n += 1;
+      lineas.push({ n, acreedor: c.acreedor, concepto: `${c.concepto}${venc}`, importe: formatoEuros(c.importe), nota: null });
+    }
     if (tipo === 'no_exonerados' && c.no_exonerado > 0) {
       n += 1;
       lineas.push({ n, acreedor: c.acreedor, concepto: `${c.concepto}${venc}`, importe: formatoEuros(c.no_exonerado), nota: c.motivo });
     }
   }
-  const total = tipo === 'exonerados' ? ir.totales.exonerado : ir.totales.no_exonerado;
+  const total = tipo === 'exonerados' ? ir.totales.exonerado : tipo === 'pasivo' ? ir.totales.pasivo : ir.totales.no_exonerado;
   return { lineas, total: formatoEuros(total) };
 }
 

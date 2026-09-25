@@ -1,11 +1,12 @@
 // Catálogo de bloques de redacción (patrón writing-block-catalog de justicia_aeroport):
 // cada bloque tiene id único, texto sin ambigüedad y hash; el paquete entero se ratifica por hash.
-import { readFileSync } from 'node:fs';
 import { arr, text, hash, deepFreeze } from './util.mjs';
 
 export const VARIABLES_PERMITIDAS = Object.freeze([
   'fecha_declaracion', 'fecha_solicitud', 'deudor',
-  'total_pasivo', 'total_exonerado', 'total_no_exonerado', 'detalle_credito_publico'
+  'total_pasivo', 'total_exonerado', 'total_no_exonerado', 'detalle_credito_publico',
+  // auto de declaración
+  'nif', 'domicilio', 'insolvencia', 'supuesto', 'supuesto_texto'
 ]);
 
 const SECCIONES = ['antecedentes', 'fundamentos', 'dispositiva', 'pie'];
@@ -44,8 +45,8 @@ export function estadoRatificacion(pack) {
   return { ratificado: true, motivo: null, hash_actual: actual, ratificado_por: r.ratificado_por, fecha: r.fecha };
 }
 
-export function cargarPack(ruta) {
-  const pack = JSON.parse(readFileSync(ruta, 'utf8'));
+// Valida un paquete ya parseado (sirve igual en Node y en el navegador).
+export function prepararPack(pack) {
   const errores = validarPack(pack);
   if (errores.length) throw new Error(`Paquete de bloques inválido:\n- ${errores.join('\n- ')}`);
   return deepFreeze(pack);

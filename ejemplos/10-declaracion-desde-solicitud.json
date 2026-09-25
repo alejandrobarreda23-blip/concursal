@@ -1,0 +1,102 @@
+{
+  "_procedencia": {
+    "fichero": "01-sin-masa-escrito.pdf",
+    "lector": "lector/0.1.0",
+    "reglas": "lector-solicitud/1.0.0",
+    "hash_texto": "a5b9a8833f194ec67da0cd9272de6b7e26ce16b055359b837e5c2d59a2e35441",
+    "hash_lectura": "5267ce7349d6dba766a2b3d19659898b2e2fd4f8a01adb2f0bcf4399d9cf25c9",
+    "nota": "Propuesta generada por el lector determinista. Revise cada dato antes de generar el auto."
+  },
+  "organo": {
+    "tribunal": "Tribunal de Instancia de Barcelona",
+    "seccion": "Sección de lo Mercantil",
+    "plaza": 11,
+    "denominacion_historica": "",
+    "localidad": "Barcelona"
+  },
+  "procedimiento": {
+    "numero": "1234/2026",
+    "nig": "0801900000000000001"
+  },
+  "juez": {
+    "nombre": "Nombre Apellido Ficticio",
+    "cargo": "Magistrado"
+  },
+  "fecha_resolucion": "2026-03-20",
+  "numero_resolucion": "55/2026",
+  "deudor": {
+    "nombre": "PERSONA DEUDORA EJEMPLO",
+    "tipo": "persona_natural",
+    "nif": "00000000T",
+    "domicilio": "Calle Inventada 1, 08850 Gavà (Barcelona)"
+  },
+  "representacion": {
+    "procurador": "PROCURADORA EJEMPLO",
+    "abogado": "ABOGADO EJEMPLO"
+  },
+  "solicitud": {
+    "fecha": "2026-03-03",
+    "tipo": "concurso_sin_masa",
+    "solicitante": "deudor",
+    "insolvencia": "actual",
+    "pide_epi": true,
+    "plan_pagos": false,
+    "documentos": {
+      "poder": true,
+      "memoria": true,
+      "inventario": true,
+      "relacion_acreedores": true,
+      "formulario_anexo_i": true
+    },
+    "activo_declarado": 350,
+    "pasivo_declarado": 24790.71
+  },
+  "creditos": [
+    {
+      "id": "C1",
+      "acreedor": "Banco Ficticio, S.A.",
+      "nif": "A00000001",
+      "concepto": "Préstamo personal",
+      "importe": 12000,
+      "clase": "ordinario"
+    },
+    {
+      "id": "C2",
+      "acreedor": "Financiera Ejemplo, S.A.",
+      "nif": "A00000002",
+      "concepto": "Tarjeta de crédito",
+      "importe": 1750.21,
+      "clase": "ordinario"
+    },
+    {
+      "id": "C3",
+      "acreedor": "Agencia Estatal de Administración Tributaria",
+      "nif": "Q2826000H",
+      "concepto": "IRPF 2023 y recargos",
+      "importe": 8000,
+      "clase": "publico_aeat"
+    },
+    {
+      "id": "C4",
+      "acreedor": "Tesorería General de la Seguridad Social",
+      "nif": "Q2827003A",
+      "concepto": "Cuotas RETA",
+      "importe": 2400,
+      "clase": "publico_tgss"
+    },
+    {
+      "id": "C5",
+      "acreedor": "Ayuntamiento Ficticio",
+      "nif": "P0800000A",
+      "concepto": "IBI 2024",
+      "importe": 640.5,
+      "clase": "publico_otro"
+    }
+  ],
+  "decision_judicial": {
+    "sentido": "declarar_sin_masa",
+    "competencia_verificada": true,
+    "insolvencia_apreciada": true,
+    "supuesto_37_bis": 1
+  }
+}

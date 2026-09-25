@@ -1,0 +1,98 @@
+{
+  "pack_id": "declaracion-sin-masa",
+  "version": "1.0.0",
+  "descripcion": "Bloques de redacción del auto de declaración de concurso sin masa (art. 37 ter TRLC, tras la Ley 16/2022), a partir de la solicitud del deudor.",
+  "ratificacion": {
+    "estado": "pendiente",
+    "ratificado_por": null,
+    "fecha": null,
+    "hash_bloques": null,
+    "nota": "Ningún bloque es definitivo hasta que el magistrado revise su texto y lo ratifique con `npm run ratificar -- --pack declaracion \"Nombre\"`."
+  },
+  "bloques": [
+    {
+      "id": "AH.solicitud",
+      "seccion": "antecedentes",
+      "variantes": ["declaracion_sin_masa"],
+      "texto": "El {{fecha_solicitud}}, la representación procesal de {{deudor}} presentó solicitud de declaración de concurso voluntario, en la que manifiesta encontrarse en situación de insolvencia {{insolvencia}} y carecer de masa activa, y acompañó la documentación prevista en el artículo 7 del texto refundido de la Ley Concursal (TRLC).",
+      "verificar": null
+    },
+    {
+      "id": "FD.competencia",
+      "seccion": "fundamentos",
+      "variantes": ["declaracion_sin_masa"],
+      "titulo": "Competencia",
+      "texto": "Este tribunal es competente para conocer del concurso, al encontrarse en su circunscripción el centro de los intereses principales del deudor (arts. 44 y 45 TRLC).",
+      "verificar": "Preceptos de competencia objetiva y territorial que el magistrado prefiera citar (TRLC y LOPJ tras la LO 1/2025)."
+    },
+    {
+      "id": "FD.presupuestos",
+      "seccion": "fundamentos",
+      "variantes": ["declaracion_sin_masa"],
+      "titulo": "Legitimación e insolvencia",
+      "texto": "El deudor está legitimado para solicitar su propia declaración de concurso (art. 3 TRLC) y de la documentación aportada resulta su estado de insolvencia {{insolvencia}} (art. 2 TRLC).",
+      "verificar": "Arts. 2 y 3 TRLC."
+    },
+    {
+      "id": "FD.sin_masa",
+      "seccion": "fundamentos",
+      "variantes": ["declaracion_sin_masa"],
+      "titulo": "Concurso sin masa",
+      "texto": "De la documentación aportada resulta que el deudor se encuentra en el supuesto del artículo 37 bis.1.{{supuesto}}.º TRLC ({{supuesto_texto}}), sin que consten acciones de reintegración, de impugnación o de responsabilidad de terceros ni otros elementos que permitan obtener masa activa.",
+      "verificar": "Redacción de los supuestos del art. 37 bis.1 y de las excepciones del art. 37 bis.2 TRLC."
+    },
+    {
+      "id": "FD.efectos_37_ter",
+      "seccion": "fundamentos",
+      "variantes": ["declaracion_sin_masa"],
+      "titulo": "Contenido de la declaración",
+      "texto": "Conforme al artículo 37 ter TRLC, procede declarar el concurso con expresión del pasivo que resulta de la documentación, sin más pronunciamientos, y comunicarlo a los acreedores para que, dentro de los quince días siguientes a su publicación en el Registro público concursal, los que representen al menos el cinco por ciento del pasivo puedan solicitar el nombramiento de un administrador concursal que emita informe razonado sobre la continuación del procedimiento.",
+      "verificar": "Plazo, porcentaje y contenido del art. 37 ter TRLC."
+    },
+    {
+      "id": "FD.epi_anunciada",
+      "seccion": "fundamentos",
+      "variantes": ["declaracion_sin_masa"],
+      "solo_si": "pide_epi",
+      "titulo": "Exoneración del pasivo insatisfecho",
+      "texto": "El deudor ha manifestado su intención de solicitar la exoneración del pasivo insatisfecho, sobre la que se resolverá en el momento procesal oportuno si ningún acreedor legitimado solicita el nombramiento de administración concursal.",
+      "verificar": "Momento y cauce de la solicitud de exoneración en el concurso sin masa."
+    },
+    {
+      "id": "PD.declaracion",
+      "seccion": "dispositiva",
+      "variantes": ["declaracion_sin_masa"],
+      "texto": "Declaro en concurso voluntario sin masa a {{deudor}}, con NIF {{nif}} y domicilio en {{domicilio}}.",
+      "verificar": null
+    },
+    {
+      "id": "PD.pasivo",
+      "seccion": "dispositiva",
+      "variantes": ["declaracion_sin_masa"],
+      "texto": "El pasivo que resulta de la documentación aportada asciende a {{total_pasivo}}, conforme a la relación siguiente:",
+      "tabla": "pasivo",
+      "verificar": null
+    },
+    {
+      "id": "PD.sin_administracion",
+      "seccion": "dispositiva",
+      "variantes": ["declaracion_sin_masa"],
+      "texto": "No se nombra administración concursal.",
+      "verificar": null
+    },
+    {
+      "id": "PD.comunicacion",
+      "seccion": "dispositiva",
+      "variantes": ["declaracion_sin_masa"],
+      "texto": "Comuníquese esta resolución a los acreedores relacionados y publíquese en el Registro público concursal, con la advertencia de que, dentro de los quince días siguientes a la publicación, los acreedores que representen al menos el cinco por ciento del pasivo podrán solicitar el nombramiento de un administrador concursal (art. 37 ter TRLC).",
+      "verificar": "Forma de comunicación a los acreedores y publicidad."
+    },
+    {
+      "id": "PD.recursos",
+      "seccion": "pie",
+      "variantes": ["declaracion_sin_masa"],
+      "texto": "Contra esta resolución cabe recurso de reposición ante este tribunal en el plazo de cinco días (art. 546 TRLC).",
+      "verificar": "Régimen de recursos contra el auto de declaración."
+    }
+  ]
+}

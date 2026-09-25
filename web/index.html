@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lector de solicitudes · Concurso sin masa</title>
+  <link rel="stylesheet" href="/web/estilos.css">
+  <script type="importmap">{ "imports": { "docx": "/node_modules/docx/dist/index.mjs" } }</script>
+</head>
+<body>
+  <header class="cabecera">
+    <div>
+      <h1>Concurso sin masa</h1>
+      <p class="sub">Lector de solicitudes y borradores de autos</p>
+    </div>
+    <div class="sellos">
+      <span class="sello">Local</span><span class="sello">Sin IA</span><span class="sello">Determinista</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="paso" id="paso-1">
+      <h2><span class="num">1</span> Solicitud</h2>
+      <label class="zona" id="zona" tabindex="0">
+        <input type="file" id="fichero" accept="application/pdf,.pdf" hidden>
+        <strong>Arrastre aquí la solicitud de concurso (PDF)</strong>
+        <span>o pulse para elegirla · el PDF se lee en este ordenador y no se envía a ningún sitio</span>
+      </label>
+      <p class="nota">Solo PDF con texto (generado por ordenador). Un PDF escaneado no se puede leer de forma determinista.</p>
+      <div id="resumen"></div>
+    </section>
+
+    <section class="paso oculto" id="paso-2">
+      <h2><span class="num">2</span> Revise lo que se ha leído</h2>
+      <p class="nota">Cada dato indica de qué línea del PDF sale. Corrija lo que haga falta: el auto se genera con lo que quede aquí.</p>
+      <div id="campos"></div>
+      <h3>Relación de acreedores</h3>
+      <div id="acreedores"></div>
+    </section>
+
+    <section class="paso oculto" id="paso-3">
+      <h2><span class="num">3</span> Datos del juzgado</h2>
+      <p class="nota">No constan en la solicitud. Se recuerdan en este navegador para la próxima vez.</p>
+      <div id="juzgado" class="rejilla"></div>
+    </section>
+
+    <section class="paso oculto" id="paso-4">
+      <h2><span class="num">4</span> Decisión del juez</h2>
+      <p class="nota">El motor no decide: sin estas confirmaciones no redacta el auto.</p>
+      <div id="decision" class="rejilla"></div>
+      <div class="acciones"><button id="generar-declaracion" class="principal">Generar auto de declaración</button></div>
+      <div id="resultado-declaracion"></div>
+    </section>
+
+    <section class="paso oculto" id="paso-5">
+      <h2><span class="num">5</span> Después: auto de conclusión</h2>
+      <p class="nota">Cuando haya transcurrido el trámite del art. 37 ter TRLC. Usa los mismos datos del deudor y de los acreedores.</p>
+      <div id="conclusion" class="rejilla"></div>
+      <div class="acciones"><button id="generar-conclusion" class="principal">Generar auto de conclusión</button></div>
+      <div id="resultado-conclusion"></div>
+    </section>
+  </main>
+
+  <footer class="pie">Borradores sin valor hasta su revisión y firma. Los bloques de texto están pendientes de ratificación por el magistrado.</footer>
+  <script type="module" src="/web/app.mjs"></script>
+</body>
+</html>

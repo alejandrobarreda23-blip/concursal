@@ -1,18 +1,19 @@
 #!/usr/bin/env node
-// Uso: node cli/generar.mjs <expediente.json> [--salida carpeta] [--docx]
+// Uso: node cli/generar.mjs <expediente.json> [--salida carpeta] [--docx] [--declaracion]
+// Sin --declaracion genera el auto de conclusión; con --declaracion, el de declaración de concurso sin masa.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import { generarAuto } from '../src/index.mjs';
+import { generarAuto, generarDeclaracion } from '../src/index.mjs';
 
 const args = process.argv.slice(2);
 const ruta = args.find((a) => !a.startsWith('--'));
-if (!ruta) { console.error('Uso: node cli/generar.mjs <expediente.json> [--salida carpeta] [--docx]'); process.exit(2); }
+if (!ruta) { console.error('Uso: node cli/generar.mjs <expediente.json> [--salida carpeta] [--docx] [--declaracion]'); process.exit(2); }
 const iSal = args.indexOf('--salida');
 const salida = iSal >= 0 ? args[iSal + 1] : 'salida';
 const quiereDocx = args.includes('--docx');
 
 const expediente = JSON.parse(readFileSync(ruta, 'utf8'));
-const r = generarAuto(expediente);
+const r = args.includes('--declaracion') ? generarDeclaracion(expediente) : generarAuto(expediente);
 const base = basename(ruta, '.json');
 mkdirSync(salida, { recursive: true });
 

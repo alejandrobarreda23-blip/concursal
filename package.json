@@ -1,19 +1,25 @@
 {
   "name": "autos-concurso-sin-masa",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Generador determinista de borradores de autos de conclusión del concurso sin masa (con o sin exoneración del pasivo insatisfecho).",
+  "description": "Lector determinista de solicitudes de concurso y generador de borradores de autos de declaración y conclusión del concurso sin masa.",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "node scripts/integridad.mjs --comprobar && node --test test/*.test.mjs",
     "generar": "node cli/generar.mjs",
-    "ejemplos": "for f in ejemplos/*.json; do node cli/generar.mjs \"$f\" --salida salida --docx; done",
+    "ejemplos": "for f in ejemplos/*.json; do if grep -q '\"solicitud\"' \"$f\"; then node cli/generar.mjs \"$f\" --declaracion --salida salida --docx; else node cli/generar.mjs \"$f\" --salida salida --docx; fi; done",
     "ratificar": "node scripts/ratificar.mjs",
     "integridad": "node scripts/integridad.mjs --escribir",
-    "golden": "node scripts/actualizar-golden.mjs"
+    "golden": "node scripts/actualizar-golden.mjs",
+    "app": "node scripts/servidor.mjs",
+    "leer": "node cli/leer.mjs",
+    "fixtures": "python3 scripts/crear-fixtures-pdf.py"
   },
   "dependencies": {
-    "docx": "9.5.1"
+    "docx": "9.5.1",
+    "pdfjs-dist": "4.10.38"
   }
 }

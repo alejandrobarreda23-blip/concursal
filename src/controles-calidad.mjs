@@ -27,7 +27,7 @@ export function controlesCalidad(ir, doc, texto) {
 
   // 3. Las tablas del texto coinciden con el IR
   for (const tabla of doc.filter((e) => e.tipo === 'tabla')) {
-    const esperado = formatoEuros(tabla.clase === 'exonerados' ? t.exonerado : t.no_exonerado);
+    const esperado = formatoEuros(tabla.clase === 'exonerados' ? t.exonerado : tabla.clase === 'pasivo' ? t.pasivo : t.no_exonerado);
     if (tabla.total !== esperado) fallos.push(`Tabla ${tabla.clase}: total ${tabla.total} ≠ ${esperado}.`);
     tabla.lineas.forEach((l, i) => { if (l.n !== i + 1) fallos.push(`Tabla ${tabla.clase}: numeración con saltos.`); });
   }
@@ -36,6 +36,11 @@ export function controlesCalidad(ir, doc, texto) {
     const tablaEx = doc.find((e) => e.tipo === 'tabla' && e.clase === 'exonerados');
     if (nEx && (!tablaEx || tablaEx.lineas.length !== nEx)) fallos.push('No todos los créditos exonerados aparecen en la parte dispositiva.');
     if (!nEx) avisos.push('Ningún crédito resulta exonerado: revisar si tiene sentido conceder la exoneración.');
+  }
+
+  if (ir.variante === 'declaracion_sin_masa') {
+    const tablaP = doc.find((e) => e.tipo === 'tabla' && e.clase === 'pasivo');
+    if (!tablaP || tablaP.lineas.length !== ir.creditos.length) fallos.push('La relación de pasivo del auto no recoge todos los créditos.');
   }
 
   // 4. Toda cifra en euros del texto procede del IR (no hay importes "huérfanos")

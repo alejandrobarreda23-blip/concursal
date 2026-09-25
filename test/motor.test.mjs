@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { generarAuto, redactar, aTextoPlano, controlesCalidad } from '../src/index.mjs';
+import { generarAuto, generarDeclaracion, redactar, aTextoPlano, controlesCalidad } from '../src/index.mjs';
+const generar = (e) => (e.solicitud ? generarDeclaracion(e) : generarAuto(e));
 import { validarPack, estadoRatificacion, hashBloques } from '../src/bloques.mjs';
 import { ejemplo, copia } from './helpers.mjs';
 
-const EJEMPLOS = ['01-epi-sin-oposicion', '02-con-oposicion', '03-persona-juridica-sin-epi', '04-garantia-real-y-publico'];
+const EJEMPLOS = ['01-epi-sin-oposicion', '02-con-oposicion', '03-persona-juridica-sin-epi', '04-garantia-real-y-publico', '10-declaracion-desde-solicitud'];
 
 test('determinismo: mismo expediente → mismo IR y mismo texto', () => {
   const e = ejemplo('04-garantia-real-y-publico');
@@ -16,7 +17,7 @@ test('determinismo: mismo expediente → mismo IR y mismo texto', () => {
 
 test('golden: los ejemplos producen exactamente el texto de referencia', () => {
   for (const n of EJEMPLOS) {
-    const r = generarAuto(ejemplo(n));
+    const r = generar(ejemplo(n));
     const meta = JSON.parse(readFileSync(new URL(`./golden/${n}.json`, import.meta.url), 'utf8'));
     assert.equal(r.estado, meta.estado, n);
     assert.equal(r.ir?.hash_ir ?? null, meta.hash_ir, `${n}: hash del IR distinto (¿cambio intencionado? npm run golden)`);
@@ -27,7 +28,7 @@ test('golden: los ejemplos producen exactamente el texto de referencia', () => {
 
 test('todos los borradores generados superan los controles de calidad', () => {
   for (const n of EJEMPLOS) {
-    const r = generarAuto(ejemplo(n));
+    const r = generar(ejemplo(n));
     if (r.texto) assert.equal(r.controles.ok, true, `${n}: ${r.controles.fallos.join('; ')}`);
   }
 });

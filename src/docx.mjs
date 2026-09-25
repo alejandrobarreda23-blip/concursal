@@ -8,7 +8,7 @@ function celda(t, bold = false) {
   return new TableCell({ children: [new Paragraph({ children: [run(t, { bold })] })] });
 }
 
-export async function aDocx(doc) {
+export function documentoWord(doc) {
   const children = [];
   for (const el of doc) {
     if (el.tipo === 'aviso') children.push(new Paragraph({ children: [run(el.texto, { bold: true, color: 'C00000' })], spacing: { after: 200 } }));
@@ -23,5 +23,9 @@ export async function aDocx(doc) {
       children.push(new Paragraph({ children: [] }));
     } else children.push(new Paragraph({ children: [run(el.texto)], alignment: AlignmentType.JUSTIFIED, spacing: { after: 120 } }));
   }
-  return Packer.toBuffer(new Document({ sections: [{ children }] }));
+  return new Document({ sections: [{ children }] });
 }
+
+// Node: Buffer · Navegador: Blob
+export const aDocx = (doc) => Packer.toBuffer(documentoWord(doc));
+export const aDocxBlob = (doc) => Packer.toBlob(documentoWord(doc));
