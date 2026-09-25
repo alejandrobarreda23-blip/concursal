@@ -16,6 +16,7 @@ export const SUPUESTOS_37_BIS = Object.freeze({
 });
 
 const DOCUMENTOS_ART_7 = ['poder', 'memoria', 'inventario', 'relacion_acreedores'];
+const LETRAS_37_BIS = Object.freeze({ '1': 'a', '2': 'b', '3': 'c', '4': 'd' });
 
 export function validarExpedienteDeclaracion(exp) {
   const e = [];
@@ -100,7 +101,12 @@ function filasPasivo(creditos) {
 export function construirIRDeclaracion(exp, pack) {
   const { filas, totales } = filasPasivo(exp.creditos);
   const advertencias = advertenciasBorradorDeclaracion(exp);
-  const ctx = { pide_epi: exp.solicitud.pide_epi === true && exp.deudor.tipo === 'persona_natural' };
+  const hayRepresentacion = Boolean(text(exp.representacion?.procurador) || text(exp.representacion?.abogado));
+  const ctx = {
+    pide_epi: exp.solicitud.pide_epi === true && exp.deudor.tipo === 'persona_natural',
+    con_representacion: hayRepresentacion,
+    sin_representacion: !hayRepresentacion
+  };
   const supuesto = String(exp.decision_judicial.supuesto_37_bis);
   const ratificacion = estadoRatificacion(pack);
   const ir = {
@@ -119,7 +125,9 @@ export function construirIRDeclaracion(exp, pack) {
       fecha_solicitud: fechaLarga(exp.solicitud.fecha),
       insolvencia: exp.solicitud.insolvencia,
       supuesto,
+      supuesto_letra: LETRAS_37_BIS[supuesto],
       supuesto_texto: SUPUESTOS_37_BIS[supuesto],
+      numero_acreedores: String(filas.length),
       total_pasivo: formatoEuros(totales.pasivo)
     },
     bloques: arr(pack.bloques)
