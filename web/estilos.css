@@ -334,8 +334,7 @@ button { font-family: inherit; }
 }
 @media(max-width:520px) {
   .judicial-topbar-subtitle { display:none; }
-  .judicial-new-button { font-size:0; width:2.4rem; padding:0; justify-content:center; }
-  .judicial-new-button::first-letter { font-size:1rem; }
+  .judicial-new-button { padding:.45rem .55rem; font-size:.68rem; }
   .case-summary-grid,.case-origin-grid { grid-template-columns:1fr; }
   .case-ejcat-identifiers { display:grid; grid-template-columns:repeat(2,1fr); }
   .case-ejcat-title-row { align-items:flex-start; flex-direction:column; }
