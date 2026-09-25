@@ -40,12 +40,13 @@ export function createKnowledgeRuntime(compiled) {
           ...(item.block_title ? { titulo: item.block_title } : {}),
           texto: item.texto,
           ...(item.tabla ? { tabla: item.tabla } : {}),
-          verificar: item.verificar ?? null
+          ...(item.legacy_has_verificar ? { verificar: item.verificar ?? null } : {})
         }));
       return {
         pack_id: profile.pack_id,
         version: profile.version,
         descripcion: profile.descripcion || compiled.titulo,
+        ...(profile.extra || {}),
         ratificacion: profile.ratificacion,
         bloques
       };
