@@ -113,3 +113,49 @@ La migración no intenta copiar todo `legal` de una vez. Quedan como extensiones
 - separación física definitiva entre adaptadores concursales y core.
 
 La prioridad es que cada incremento preserve la paridad antes de ampliar el conocimiento.
+
+
+## Knowledge fuente de persona física
+
+Se ha incorporado como fuente canónica de trabajo:
+
+`knowledge/source/concursal/kb-concurso-persona-fisica-1.0.0.json`
+
+No se reescribe silenciosamente. El adaptador `src/adapters/concursal/knowledge-persona-fisica.mjs` conserva la semántica de origen y la proyecta al contrato común:
+
+- `normas` → `fuentes`;
+- `reglas` → `reglas` + una cuestión trazable por regla;
+- `checklists` → `esquemas_probatorios`;
+- `jurisprudencia` → `precedentes`;
+- `fundamentos_tipo` → `bloques_redaccion` de referencia;
+- `pendiente_verificar` → `huecos`;
+- variables, cálculos, plazos, fases y resoluciones permanecen como catálogos de gobernanza.
+
+Las reglas que el corpus califica como `valoracion_judicial` o `mixta` no se convierten en decisiones automáticas. El rule engine devuelve esas activaciones en `judicial_questions`.
+
+El pack de paridad `KP-CONCURSAL-CSM` conserva por ahora la autoridad de runtime para los autos ya cubiertos. El nuevo `KP-CONCURSAL-PERSONA-FISICA` amplía cobertura sin alterar golden ni redacción activa hasta que se ratifiquen módulos concretos.
+
+## Rule engine JSON Logic
+
+`src/core/knowledge/json-logic.mjs` implementa el subconjunto determinista requerido por el corpus actual (`var`, booleanos, comparaciones, `in`, `some`, `reduce`, aritmética e `if`).
+
+`src/core/knowledge/rule-engine.mjs` evalúa reglas sin conocer la materia jurídica y separa:
+
+- reglas automáticas activadas;
+- cuestiones que exigen decisión humana;
+- efectos declarativos;
+- reglas bloqueantes, de requerimiento o derivación.
+
+El Core ejecuta expresiones; el adaptador y el Knowledge definen qué significan.
+
+## Extracción híbrida
+
+La extracción documental se separa también del conocimiento.
+
+- `src/core/extraction/contracts.mjs`: contrato genérico de propuestas, evidencia, confianza y fusión.
+- `src/adapters/concursal/ai-extraction.mjs`: traducción entre la propuesta estructurada y la lectura concursal.
+- `netlify/functions/extract-solicitud.mjs`: endpoint server-side opcional; ninguna clave se expone al navegador.
+
+La IA se limita a extraer hechos expresos del escrito y debe devolver evidencia de página/línea. No puede decidir competencia, insolvencia, art. 37 bis, buena fe ni EPI. El resultado es una propuesta revisable y el lector determinista permanece disponible como fallback.
+
+La interfaz deja la extracción IA desactivada por defecto. Activarla supone enviar el texto extraído del PDF al proveedor configurado; el fichero PDF no se remite por esta vía.
