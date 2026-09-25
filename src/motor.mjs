@@ -27,7 +27,11 @@ export function generarAutoConclusion(expediente, { knowledge, pack = null } = {
     return { estado: 'error_redaccion', errores: [err.message], ir };
   }
 
-  const controles = controlesCalidad(ir, documento, texto);
+  const controlesBase = controlesCalidad(ir, documento, texto);
+  const controles = Object.freeze({
+    ...controlesBase,
+    avisos: [...new Set([...(controlesBase.avisos || []), ...(clasificacion.avisos || [])])]
+  });
   if (!controles.ok) return { estado: 'bloqueado_por_calidad', controles, ir };
 
   return {
