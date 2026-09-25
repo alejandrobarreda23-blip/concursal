@@ -22,11 +22,26 @@ test('declaración: sin decisión del juez no se redacta', () => {
   assert.equal(r.motivos.length, 4);
 });
 
-test('declaración: faltan documentos del art. 7 → requerimiento, no auto', () => {
-  const e = copia(base); e.solicitud.documentos.memoria = false;
+test('declaración: documentos del art. 7 incompletos → borrador con advertencia, no bloqueo', () => {
+  const e = copia(base);
+  e.solicitud.documentos.poder = false;
+  e.solicitud.documentos.memoria = false;
+  e.solicitud.documentos.inventario = false;
   const f = determinarFaseDeclaracion(e);
-  assert.equal(f.estado, 'pendiente_tramite');
-  assert.match(f.motivos[0], /memoria/);
+  assert.equal(f.estado, 'listo');
+  const r = generarDeclaracion(e);
+  assert.equal(r.estado, 'borrador_no_ratificado');
+  assert.ok(r.controles.avisos.some((a) => /poder, memoria, inventario/.test(a)));
+  assert.match(r.texto, /ADVERTENCIA DE BORRADOR/);
+  assert.ok(!r.texto.includes('acompañó la documentación prevista en el artículo 7'));
+});
+
+test('declaración: sin nombre del juez → genera con hueco y advertencia', () => {
+  const e = copia(base); e.juez.nombre = '';
+  const r = generarDeclaracion(e);
+  assert.equal(r.estado, 'borrador_no_ratificado');
+  assert.match(r.texto, /Magistrado: ____________________/);
+  assert.ok(r.controles.avisos.some((a) => /Falta el nombre del juez\/a/.test(a)));
 });
 
 test('declaración: plan de pagos, concurso necesario u ordinario → fuera de alcance', () => {

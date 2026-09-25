@@ -14,7 +14,7 @@
       "id": "AH.solicitud",
       "seccion": "antecedentes",
       "variantes": ["declaracion_sin_masa"],
-      "texto": "El {{fecha_solicitud}}, la representación procesal de {{deudor}} presentó solicitud de declaración de concurso voluntario, en la que manifiesta encontrarse en situación de insolvencia {{insolvencia}} y carecer de masa activa, y acompañó la documentación prevista en el artículo 7 del texto refundido de la Ley Concursal (TRLC).",
+      "texto": "El {{fecha_solicitud}}, la representación procesal de {{deudor}} presentó solicitud de declaración de concurso voluntario, en la que manifiesta encontrarse en situación de insolvencia {{insolvencia}} y carecer de masa activa.",
       "verificar": null
     },
     {
