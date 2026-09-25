@@ -58,7 +58,7 @@ export function controlesCalidad(ir, doc, texto) {
   }
 
   // 6. Numeración de la parte dispositiva
-  const disp = doc.filter((e) => e.tipo === 'parrafo' && /^\d+\.º /.test(e.texto)).map((e) => parseInt(e.texto, 10));
+  const disp = doc.filter((e) => e.tipo === 'dispositivo').map((e) => e.numero);
   disp.forEach((n, i) => { if (n !== i + 1) fallos.push('Parte dispositiva: numeración con saltos.'); });
 
   // 7. Ratificación
