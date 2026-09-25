@@ -210,7 +210,7 @@ function campo({ etiqueta, ruta, raiz = 'expediente', tipo = 'texto', opciones =
   else control = `<input ${attrs} ${tipo === 'fecha' ? 'type="date"' : 'type="text"'} ${tipo === 'numero' || tipo === 'entero' ? `data-tipo="${tipo}" inputmode="decimal"` : ''} value="${esc(v ?? '')}">`;
   const f = fuente === false ? '' : fuente
     ? `<span class="fuente" title="${esc(fuente.fuente?.texto || '')}">Leído en p. ${fuente.fuente?.pagina}, l. ${fuente.fuente?.linea} · ${esc(fuente.regla)}</span>`
-    : '<span class="fuente manual">No leído: complételo</span>';
+    : '<span class="fuente manual">No leído · puede dejarse pendiente en el borrador</span>';
   return `<label class="campo"><span>${esc(etiqueta)}</span>${control}${f}</label>`;
 }
 
