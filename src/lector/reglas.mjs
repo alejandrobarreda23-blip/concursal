@@ -2,7 +2,7 @@
 // que aparece en la lectura junto a la línea del PDF que la activó, para que se pueda revisar
 // por qué el motor ha concluido lo que ha concluido.
 
-export const REGLAS_VERSION = 'lector-solicitud/1.0.0';
+export const REGLAS_VERSION = 'lector-solicitud/1.1.0';
 
 // Clasificación de la petición. Se evalúan sobre el texto completo normalizado (minúsculas, sin tildes).
 export const REGLAS_CLASIFICACION = Object.freeze([
@@ -42,11 +42,13 @@ export const REGLAS_CLASE_CREDITO = Object.freeze([
 ]);
 
 // Encabezados que abren y cierran la relación de acreedores.
-export const INICIO_ACREEDORES = /^(?:[ivx]+\.\s*)?(?:relacion de acreedores|acreedores\s*(?:,|y\b|contratos)|pasivo\b)/;
-export const FIN_ACREEDORES = /^(?:[ivx]+\.\s|\d+\.\s*relacion de gastos|fundamentos|suplico|otrosi|documentos|inventario|en [a-z].*, a \d|[a-z].*, \d{1,2} de [a-z]+ de \d{4})/;
+export const INICIO_ACREEDORES = /^(?:(?:[ivx]+|primero|segundo|tercero|cuarto|quinto|sexto|septimo|octavo|noveno|decimo)\.\s*)?(?:relacion(?:\s+simplificada)?\s+de\s+acreedores|acreedores\s*(?:,|y\b|contratos)|pasivo\b)/;
+export const FIN_ACREEDORES = /^(?:(?:[ivx]+|primero|segundo|tercero|cuarto|quinto|sexto|septimo|octavo|noveno|decimo)\.\s|\d+\.\s*relacion de gastos|fundamentos|suplico|otrosi|documentos|inventario|en [a-z].*, a \d|[a-z].*, \d{1,2} de [a-z]+ de \d{4})/;
 
-export const RE_IMPORTE = /(\d{1,3}(?:\.\d{3})*|\d+),(\d{2})\s*(?:€|euros?|eur)?/gi;
-export const RE_NIF = /\b(?:[0-9]{8}[A-Z]|[XYZ][0-9]{7}[A-Z]|[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J])\b/;
+// Conserva el formato previo con decimales (la moneda puede omitirse) y admite,
+// además, importes enteros cuando llevan una unidad monetaria: "18.000 EUR", "340 euros".
+export const RE_IMPORTE = /(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}\s*(?:€|euros?\b|eur\b)?|(?:\d{1,3}(?:\.\d{3})*|\d+)\s*(?:€|euros?\b|eur\b)/gi;
+export const RE_NIF = /\b(?:[0-9]{8}[-\s]?[A-Z]|[XYZ][0-9]{7}[-\s]?[A-Z]|[ABCDEFGHJNPQRSUVW][0-9]{7}[-\s]?[0-9A-J])\b/;
 export const RE_EMAIL = /\S+@\S+\.\S+/;
 export const RE_FECHA = /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/;
 export const GARANTIAS = /\b(personal|hipotecaria|real|prendaria|reserva de dominio)\s*$/i;
