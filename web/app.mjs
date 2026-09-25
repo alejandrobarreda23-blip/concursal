@@ -14,6 +14,7 @@ import { creditClassIds } from '/src/core/knowledge/credit-engine.mjs';
 import { adaptPersonaFisicaKnowledgeSource, personaFisicaKnowledgeSummary } from '/src/adapters/concursal/knowledge-persona-fisica.mjs';
 import { fusionarLecturaConIA } from '/src/adapters/concursal/ai-extraction.mjs';
 import { anonimizarDocumentoConcursal } from '/src/adapters/concursal/anonymize-document.mjs';
+import { buildSafeCaseSnapshot, buildKnowledgeContext, validateSafeCaseSnapshot, relevantKnowledgeModules } from '/src/adapters/concursal/ai-tools.mjs';
 import { listProcedimientos, getProcedimiento, putProcedimiento, deleteProcedimiento, findBySourceHash } from '/web/case-store.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
@@ -320,8 +321,7 @@ $('fichero').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-async function extraerSolicitudConIA(doc, determinista) {
-  const privacy = anonimizarDocumentoConcursal(doc, determinista);
+async function extraerSolicitudConIA(privacy) {
   const response = await fetch('/.netlify/functions/extract-solicitud', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -353,11 +353,17 @@ async function leerNuevaSolicitud(fichero) {
     let lectura = determinista;
     let extractionMode = 'deterministic';
     let extractionError = null;
+    let privacyDocument = null;
+    try {
+      privacyDocument = anonimizarDocumentoConcursal(texto, determinista);
+    } catch (privacyError) {
+      extractionError = { code: privacyError.code || 'LOCAL_PRIVACY_GUARD_FAILED', message: privacyError.message };
+    }
     const useAi = $('ai-extraction-toggle')?.checked === true;
-    if (useAi) {
-      status.innerHTML = '<p class="nota loading-note">Lectura local terminada · anonimizando en este navegador antes de usar IA…</p>';
+    if (useAi && privacyDocument) {
+      status.innerHTML = '<p class="nota loading-note">Lectura local terminada · usando texto pseudonimizado con IA…</p>';
       try {
-        const assisted = await extraerSolicitudConIA(texto, determinista);
+        const assisted = await extraerSolicitudConIA(privacyDocument);
         lectura = fusionarLecturaConIA(determinista, assisted.proposal, { provider: assisted.provider, model: assisted.model });
         extractionMode = 'hybrid_ai_anonymized';
         lectura = plain(lectura);
@@ -385,6 +391,11 @@ async function leerNuevaSolicitud(fichero) {
       createdAt,
       updatedAt: createdAt,
       source: { name: fichero.name, size: fichero.size, lastModified: fichero.lastModified, hash: lectura.hash_texto, extraction_mode: extractionMode, extraction_error: extractionError },
+      ai_context: privacyDocument ? {
+        safe_document_text: privacyDocument.text,
+        privacy: privacyDocument.manifest
+      } : null,
+      ai_results: {},
       lectura: plain(lectura),
       expediente: plain(expediente),
       conclusion: null,
@@ -402,13 +413,91 @@ async function leerNuevaSolicitud(fichero) {
 }
 
 // ---------- Knowledge ----------
+const knowledgeUi = { section: 'reglas', query: '', selected: null };
+
+function knowledgeCollection(section) {
+  const raw = estado.sourceKnowledgeRaw;
+  return ({
+    reglas: raw.reglas || [],
+    normas: raw.normas || [],
+    fases: raw.fases || [],
+    resoluciones: raw.resoluciones || [],
+    fundamentos: raw.fundamentos_tipo || [],
+    jurisprudencia: raw.jurisprudencia || [],
+    huecos: raw.pendiente_verificar || []
+  })[section] || [];
+}
+
+function knowledgeTitle(section, item, index) {
+  if (section === 'normas') return item.titulo || [item.norma, item.art].filter(Boolean).join(' · ') || item.id || `Norma ${index + 1}`;
+  if (section === 'jurisprudencia') return [item.organo, item.resolucion].filter(Boolean).join(' · ') || item.id || `Precedente ${index + 1}`;
+  if (section === 'huecos') return item.que || item.ref || `Pendiente ${index + 1}`;
+  return item.titulo || item.nombre || item.descripcion || item.id || item.codigo || `${section} ${index + 1}`;
+}
+
+function knowledgeSummaryText(section, item) {
+  const value = item.mensaje || item.texto || item.descripcion || item.nota || item.objeto || item.que || item.finalidad;
+  if (Array.isArray(value)) return value.join(' · ');
+  return String(value || '').slice(0, 260);
+}
+
+function knowledgeBadges(section, item) {
+  const values = [
+    item.modulo,
+    item.tipo,
+    item.severidad,
+    item.verificado === true ? 'verificado' : item.verificado === false ? 'no verificado' : null,
+    section === 'jurisprudencia' ? item.fecha : null
+  ].filter(Boolean);
+  return values.map((v) => `<span class="knowledge-badge">${esc(String(v).replaceAll('_',' '))}</span>`).join('');
+}
+
+function pintarKnowledgeDetail(section, item, index) {
+  const target = $('knowledge-detail');
+  if (!target) return;
+  if (!item) {
+    target.innerHTML = '<div class="knowledge-detail-empty"><span>Selecciona un elemento</span><p>Aquí podrás leer el contenido completo, su procedencia y su estructura técnica.</p></div>';
+    return;
+  }
+  const title = knowledgeTitle(section, item, index);
+  const fields = [];
+  if (item.id) fields.push(['ID', item.id]);
+  if (item.modulo) fields.push(['Módulo', item.modulo]);
+  if (item.tipo) fields.push(['Tipo', item.tipo]);
+  if (item.severidad) fields.push(['Severidad', item.severidad]);
+  if (item.norma) fields.push(['Norma', item.norma]);
+  if (item.art) fields.push(['Artículo', item.art]);
+  if (item.fundamento?.length) fields.push(['Fundamento', item.fundamento.join(', ')]);
+  if (item.verificado != null) fields.push(['Verificación', String(item.verificado)]);
+  target.innerHTML = `
+    <div class="knowledge-detail-head"><span class="judicial-kicker">${esc(section)}</span><h2>${esc(title)}</h2>${knowledgeBadges(section,item)}</div>
+    ${fields.length ? `<dl class="knowledge-detail-grid">${fields.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+    ${knowledgeSummaryText(section,item) ? `<div class="knowledge-detail-text">${esc(knowledgeSummaryText(section,item))}</div>` : ''}
+    <details class="knowledge-json"><summary>Ver estructura técnica</summary><pre>${esc(JSON.stringify(item,null,2))}</pre></details>`;
+}
+
+function pintarKnowledgeBrowser() {
+  const section = knowledgeUi.section;
+  const query = knowledgeUi.query.toLowerCase().trim();
+  const items = knowledgeCollection(section);
+  const filtered = items.map((item,index)=>({item,index,title:knowledgeTitle(section,item,index)}))
+    .filter(({item,title}) => !query || JSON.stringify(item).toLowerCase().includes(query) || title.toLowerCase().includes(query));
+  $('knowledge-browser').innerHTML = filtered.length ? filtered.map(({item,index,title}) => `
+    <button class="knowledge-row ${knowledgeUi.selected === index ? 'active' : ''}" data-knowledge-item="${index}">
+      <span class="knowledge-row-main"><b>${esc(title)}</b><small>${esc(knowledgeSummaryText(section,item) || 'Sin resumen')}</small></span>
+      <span class="knowledge-row-tags">${knowledgeBadges(section,item)}</span>
+    </button>`).join('') : '<div class="judicial-mini-empty">No hay elementos que coincidan con la búsqueda.</div>';
+  const selected = items[knowledgeUi.selected];
+  pintarKnowledgeDetail(section, selected || null, knowledgeUi.selected);
+}
+
 function pintarKnowledge() {
   const s = estado.knowledgeSummary;
   const raw = estado.sourceKnowledgeRaw;
   if (!$('knowledge-summary')) return;
   $('knowledge-summary').innerHTML = `
     <section class="knowledge-hero-card">
-      <div><span class="judicial-kicker">Fuente incorporada</span><h2>${esc(raw.meta?.titulo || 'Knowledge concursal')}</h2><p>Versión ${esc(s.version || '—')} · corte normativo ${esc(s.fecha_corte_normativa || '—')} · cargado como pack independiente del motor.</p></div>
+      <div><span class="judicial-kicker">Fuente incorporada</span><h2>${esc(raw.meta?.titulo || 'Knowledge concursal')}</h2><p>Versión ${esc(s.version || '—')} · corte normativo ${esc(s.fecha_corte_normativa || '—')} · el contenido completo es inspeccionable, no sólo sus métricas.</p></div>
       <span class="knowledge-state">Pendiente de certificación</span>
     </section>
     <section class="knowledge-metrics">
@@ -423,8 +512,10 @@ function pintarKnowledge() {
   const modules = Object.entries((raw.reglas || []).reduce((acc, rule) => {
     const key = rule.modulo || 'otros'; acc[key] = (acc[key] || 0) + 1; return acc;
   }, {})).sort((a,b) => b[1] - a[1]);
-  $('knowledge-modules').innerHTML = modules.map(([name, count]) => `<article class="knowledge-module"><span>${esc(name.replaceAll('_',' '))}</span><b>${count}</b></article>`).join('');
+  $('knowledge-modules').innerHTML = modules.map(([name, count]) => `<button class="knowledge-module" data-knowledge-module="${esc(name)}"><span>${esc(name.replaceAll('_',' '))}</span><b>${count}</b></button>`).join('');
   $('knowledge-warnings').innerHTML = (raw.meta?.advertencias || []).map((warning) => `<li>${esc(warning)}</li>`).join('');
+  document.querySelectorAll('[data-knowledge-section]').forEach((b) => b.classList.toggle('active', b.dataset.knowledgeSection === knowledgeUi.section));
+  pintarKnowledgeBrowser();
 }
 
 // ---------- dashboard y listado ----------
@@ -580,6 +671,90 @@ function pintarOverview() {
       </div>
     </section>
   </div>`;
+}
+
+function renderAiResult(mode, payload) {
+  if (!payload?.result) return '<div class="ai-result-empty">Todavía no se ha ejecutado esta asistencia.</div>';
+  const result = payload.result;
+  if (mode === 'document_audit') {
+    return `<div class="ai-result">
+      <div class="ai-result-meta">Revisión humana obligatoria · ${esc(payload.model || 'modelo')}</div>
+      ${(result.hallazgos || []).map((h)=>`<article class="ai-finding severity-${esc(h.severidad)}"><span>${esc(h.severidad)}</span><div><b>${esc(h.categoria)}</b><p>${esc(h.descripcion)}</p>${h.evidence?.page ? `<small>p. ${h.evidence.page}, l. ${h.evidence.line || '—'} · ${esc(h.evidence.quote || '')}</small>` : ''}</div></article>`).join('')}
+      ${result.contradicciones?.length ? `<h4>Contradicciones</h4>${result.contradicciones.map((x)=>`<p class="ai-question">⚠ ${esc(x.descripcion)}</p>`).join('')}` : ''}
+      ${result.preguntas_revision?.length ? `<h4>Preguntas para revisar</h4><ul>${result.preguntas_revision.map((x)=>`<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    </div>`;
+  }
+  return `<div class="ai-result">
+    <div class="ai-result-meta">Basado sólo en el Knowledge suministrado · revisión humana obligatoria</div>
+    ${(result.cuestiones || []).map((q)=>`<article class="ai-issue"><span class="knowledge-badge">${esc(q.relevancia)}</span><div><b>${esc(q.titulo)}</b><p>${esc(q.por_que_importa)}</p><small>Reglas: ${esc((q.rule_ids || []).join(', ') || '—')}${q.requiere_decision_judicial ? ' · decisión judicial' : ''}</small>${q.hechos_faltantes?.length ? `<ul>${q.hechos_faltantes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div></article>`).join('')}
+  </div>`;
+}
+
+function pintarAnalysis() {
+  if (!estado.currentCase || !estado.expediente) return;
+  const modules = relevantKnowledgeModules(estado.expediente);
+  const rules = (estado.sourceKnowledgeRaw.reglas || []).filter((r)=>modules.includes(r.modulo));
+  const results = estado.currentCase.ai_results || {};
+  const hasSafeDoc = Boolean(estado.currentCase.ai_context?.safe_document_text);
+  $('case-analysis').innerHTML = `<div class="case-analysis-workspace">
+    <section class="analysis-hero">
+      <div><span class="case-section-kicker">Análisis</span><h2>Motor determinista + Knowledge + asistencias IA opcionales</h2><p>Las reglas estructuradas siguen siendo la columna vertebral. La IA se reserva para tareas semánticas donde un sistema determinista puede perder matices, contradicciones o relevancia contextual.</p></div>
+    </section>
+    <section class="analysis-grid">
+      <article class="analysis-card deterministic">
+        <span class="analysis-number">D</span><div><h3>Knowledge determinista</h3><p>Módulos potencialmente relevantes: <b>${esc(modules.join(' · '))}</b>. Hay ${rules.length} reglas disponibles en esos módulos.</p><div class="analysis-rule-list">${rules.slice(0,8).map(r=>`<button data-jump-rule="${esc(r.id)}"><span>${esc(r.id)}</span>${esc(r.titulo || r.mensaje || '')}</button>`).join('')}</div></div>
+      </article>
+      <article class="analysis-card ai">
+        <span class="analysis-number">IA 2</span><div><h3>Auditor documental semántico</h3><p>Busca contradicciones internas, omisiones semánticas, cifras incompatibles y puntos que merecen revisión. No decide ninguna cuestión jurídica.</p>
+        <button class="analysis-run" data-run-ai="document_audit" ${hasSafeDoc ? '' : 'disabled'}>Ejecutar auditoría</button>
+        ${!hasSafeDoc ? '<small>Requiere un procedimiento creado después de activar la capa de pseudonimización local.</small>' : ''}
+        <div id="ai2-result">${renderAiResult('document_audit', results.document_audit)}</div></div>
+      </article>
+      <article class="analysis-card ai">
+        <span class="analysis-number">IA 3</span><div><h3>Mapa de cuestiones jurídicas</h3><p>Recibe sólo un snapshot desidentificado y el subconjunto relevante del Knowledge. Señala reglas, hechos faltantes y cuestiones a revisar, sin proponer el sentido de la resolución.</p>
+        <button class="analysis-run" data-run-ai="knowledge_issue_spotter">Analizar cuestiones</button>
+        <div id="ai3-result">${renderAiResult('knowledge_issue_spotter', results.knowledge_issue_spotter)}</div></div>
+      </article>
+    </section>
+  </div>`;
+}
+
+async function ejecutarAsistenciaIA(mode) {
+  if (!estado.currentCase || !estado.expediente) return;
+  const target = mode === 'document_audit' ? $('ai2-result') : $('ai3-result');
+  target.innerHTML = '<p class="nota loading-note">Preparando contexto seguro…</p>';
+  let body = { mode };
+  if (mode === 'document_audit') {
+    const ctx = estado.currentCase.ai_context;
+    if (!ctx?.safe_document_text || !ctx?.privacy) {
+      target.innerHTML = '<ul class="alertas"><li class="aviso">Este expediente no conserva un texto pseudonimizado reutilizable. Reincorpora la solicitud para habilitar esta asistencia.</li></ul>';
+      return;
+    }
+    body.document_text = ctx.safe_document_text;
+    body.privacy = ctx.privacy;
+  } else {
+    const snapshot = buildSafeCaseSnapshot(estado.expediente);
+    const validation = validateSafeCaseSnapshot(snapshot);
+    if (!validation.ok) {
+      target.innerHTML = '<ul class="alertas"><li class="bloqueo">El snapshot no supera la frontera de privacidad. No se enviará nada.</li></ul>';
+      return;
+    }
+    body.case_snapshot = snapshot;
+    body.knowledge_context = buildKnowledgeContext(estado.sourceKnowledgeRaw, estado.expediente);
+  }
+  try {
+    const response = await fetch('/.netlify/functions/assist-case', {
+      method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body)
+    });
+    const payload = await response.json().catch(()=>({}));
+    if (!response.ok) throw Object.assign(new Error(payload?.error?.message || `IA HTTP ${response.status}`), { code:payload?.error?.code });
+    estado.currentCase.ai_results ||= {};
+    estado.currentCase.ai_results[mode] = { ...payload, created_at: ahora() };
+    await guardarCasoAhora({ evento: actividad('ai', mode === 'document_audit' ? 'IA 2 · auditoría documental' : 'IA 3 · mapa de cuestiones', 'Resultado asistido pendiente de revisión humana') });
+    pintarAnalysis();
+  } catch (error) {
+    target.innerHTML = `<ul class="alertas"><li class="aviso">${esc(error.code === 'AI_NOT_CONFIGURED' ? 'La asistencia está preparada pero aún no hemos conectado la API.' : error.message)}</li></ul>`;
+  }
 }
 
 function pintarActivity() {
@@ -831,7 +1006,7 @@ $('generar-conclusion').onclick = async () => {
 
 function pintarTodo() {
   pintarResumen(); pintarCampos(); pintarAcreedores(); pintarJuzgado(); pintarDecision();
-  pintarCaseHeader(); pintarOverview(); pintarActivity();
+  pintarCaseHeader(); pintarOverview(); pintarAnalysis(); pintarActivity();
 
   if (estado.resultadoDeclaracion?.texto) {
     pintarResultado('resultado-declaracion', estado.resultadoDeclaracion, `auto-declaracion-${(estado.expediente.procedimiento.numero || 'sin-numero').replace(/\W+/g, '-')}`, estado.expediente);
@@ -850,6 +1025,59 @@ function pintarTodo() {
     $('resultado-conclusion').innerHTML = '';
   }
 }
+
+// ---------- interacción Knowledge / privacidad / IA ----------
+$('ai-privacy-info')?.addEventListener('click', () => $('ai-privacy-dialog')?.showModal());
+$('ai-privacy-close')?.addEventListener('click', () => $('ai-privacy-dialog')?.close());
+$('ai-privacy-dialog')?.addEventListener('click', (event) => {
+  if (event.target === $('ai-privacy-dialog')) $('ai-privacy-dialog').close();
+});
+$('knowledge-search')?.addEventListener('input', (event) => {
+  knowledgeUi.query = event.target.value || '';
+  pintarKnowledgeBrowser();
+});
+document.addEventListener('click', async (event) => {
+  const section = event.target.closest('[data-knowledge-section]');
+  if (section) {
+    knowledgeUi.section = section.dataset.knowledgeSection;
+    knowledgeUi.selected = null;
+    document.querySelectorAll('[data-knowledge-section]').forEach((b)=>b.classList.toggle('active', b === section));
+    pintarKnowledgeBrowser();
+    return;
+  }
+  const item = event.target.closest('[data-knowledge-item]');
+  if (item) {
+    knowledgeUi.selected = Number(item.dataset.knowledgeItem);
+    pintarKnowledgeBrowser();
+    return;
+  }
+  const moduleBtn = event.target.closest('[data-knowledge-module]');
+  if (moduleBtn) {
+    knowledgeUi.section = 'reglas';
+    knowledgeUi.query = moduleBtn.dataset.knowledgeModule;
+    knowledgeUi.selected = null;
+    if ($('knowledge-search')) $('knowledge-search').value = knowledgeUi.query;
+    document.querySelectorAll('[data-knowledge-section]').forEach((b)=>b.classList.toggle('active', b.dataset.knowledgeSection === 'reglas'));
+    pintarKnowledgeBrowser();
+    return;
+  }
+  const jumpRule = event.target.closest('[data-jump-rule]');
+  if (jumpRule) {
+    setAppView('knowledge');
+    knowledgeUi.section = 'reglas';
+    knowledgeUi.query = jumpRule.dataset.jumpRule;
+    knowledgeUi.selected = null;
+    if ($('knowledge-search')) $('knowledge-search').value = knowledgeUi.query;
+    pintarKnowledge();
+    return;
+  }
+  const runAi = event.target.closest('[data-run-ai]');
+  if (runAi) {
+    runAi.disabled = true;
+    await ejecutarAsistenciaIA(runAi.dataset.runAi);
+    runAi.disabled = false;
+  }
+});
 
 // ---------- inicio ----------
 try { $('ai-extraction-toggle').checked = localStorage.getItem(CLAVE_EXTRACTOR_IA) === 'true'; } catch {}
