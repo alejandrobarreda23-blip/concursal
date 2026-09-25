@@ -9,7 +9,7 @@ test('declaración: genera el borrador y recoge todo el pasivo', () => {
   const r = generarDeclaracion(base);
   assert.equal(r.estado, 'borrador_no_ratificado');
   assert.equal(r.controles.ok, true);
-  assert.match(r.texto, /Declaro en concurso voluntario sin masa a PERSONA DEUDORA EJEMPLO, con NIF 00000000T/);
+  assert.match(r.texto, /DECLARO a PERSONA DEUDORA EJEMPLO, con NIF 00000000T.*concurso voluntario sin masa/);
   assert.match(r.texto, /asciende a 24\.790,71 €/);
   assert.match(r.texto, /37 bis\.a\) TRLC/);
   assert.match(r.texto, /Boletín Oficial del Estado/);
