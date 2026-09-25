@@ -3,65 +3,191 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lector de solicitudes · Concurso sin masa</title>
+  <title>Concurso sin masa · Tramitación</title>
   <link rel="stylesheet" href="/web/estilos.css">
   <script type="importmap">{ "imports": { "docx": "/node_modules/docx/dist/index.mjs" } }</script>
 </head>
 <body>
-  <header class="cabecera">
-    <div>
-      <h1>Concurso sin masa</h1>
-      <p class="sub">Lector de solicitudes y borradores de autos</p>
+  <div class="app-shell">
+    <aside class="judicial-sidebar">
+      <div class="judicial-brand">
+        <div class="judicial-brand-mark">CS</div>
+        <div>
+          <div class="judicial-brand-title">Concurso sin masa</div>
+          <div class="judicial-brand-subtitle">Tramitación concursal</div>
+        </div>
+      </div>
+
+      <nav class="judicial-nav" aria-label="Navegación principal">
+        <div class="judicial-nav-group">
+          <div class="judicial-nav-label">Trabajo</div>
+          <button class="judicial-nav-item is-active" data-app-view="dashboard">
+            <span class="nav-icon">⌂</span><span>Bandeja</span>
+          </button>
+        </div>
+        <div class="judicial-nav-group">
+          <div class="judicial-nav-label">Expedientes</div>
+          <button class="judicial-nav-item" data-app-view="procedimientos">
+            <span class="nav-icon">▤</span><span>Procedimientos</span><span id="nav-case-count" class="judicial-nav-counter oculto">0</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="judicial-sidebar-footer">
+        <div class="local-storage-pill"><span></span> Persistencia local</div>
+        <div class="judicial-sidebar-note">La máquina prepara. La decisión sigue siendo judicial.</div>
+      </div>
+    </aside>
+
+    <div class="app-body">
+      <header class="judicial-topbar">
+        <div>
+          <div id="topbar-title" class="judicial-topbar-title">Bandeja concursal</div>
+          <div id="topbar-subtitle" class="judicial-topbar-subtitle">Procedimientos guardados únicamente en este navegador</div>
+        </div>
+        <div class="judicial-topbar-actions">
+          <button id="nuevo-procedimiento" class="judicial-new-button">＋ Nuevo procedimiento</button>
+        </div>
+      </header>
+
+      <nav class="judicial-mobile-nav" aria-label="Navegación móvil">
+        <button class="judicial-mobile-nav-item is-active" data-app-view="dashboard">Bandeja</button>
+        <button class="judicial-mobile-nav-item" data-app-view="procedimientos">Procedimientos</button>
+      </nav>
+
+      <main class="judicial-main">
+        <section id="view-dashboard" class="app-view judicial-inbox">
+          <div class="judicial-inbox-hero">
+            <div>
+              <div class="judicial-kicker">Trabajo de hoy</div>
+              <h1>Bandeja concursal</h1>
+              <p>Sube una solicitud, revísala y conviértela en un procedimiento persistente. La aplicación conserva el expediente en este navegador y lo reabre desde aquí.</p>
+            </div>
+          </div>
+
+          <section class="judicial-metric-grid">
+            <article class="judicial-metric-card tone-neutral"><div class="judicial-metric-icon">▤</div><div id="metric-total" class="judicial-metric-value">0</div><div class="judicial-metric-label">Procedimientos</div><div class="judicial-metric-description">Registrados en este navegador</div></article>
+            <article class="judicial-metric-card tone-attention"><div class="judicial-metric-icon">!</div><div id="metric-pending" class="judicial-metric-value">0</div><div class="judicial-metric-label">Necesitan decisión</div><div class="judicial-metric-description">Falta una confirmación judicial</div></article>
+            <article class="judicial-metric-card tone-ready"><div class="judicial-metric-icon">✓</div><div id="metric-ready" class="judicial-metric-value">0</div><div class="judicial-metric-label">Listos para auto</div><div class="judicial-metric-description">Datos y decisión preparados</div></article>
+            <article class="judicial-metric-card tone-new"><div class="judicial-metric-icon">A</div><div id="metric-generated" class="judicial-metric-value">0</div><div class="judicial-metric-label">Autos generados</div><div class="judicial-metric-description">Borradores de declaración emitidos</div></article>
+          </section>
+
+          <div class="dashboard-grid">
+            <section class="judicial-section-card upload-card">
+              <div class="judicial-section-heading">
+                <div><div class="judicial-kicker">Entrada</div><h2>Nueva solicitud</h2><p>La solicitud se lee localmente y, tras la extracción, queda registrada como procedimiento.</p></div>
+              </div>
+              <label class="zona dashboard-dropzone" id="zona" tabindex="0">
+                <input type="file" id="fichero" accept="application/pdf,.pdf" hidden>
+                <span class="upload-glyph">＋</span>
+                <strong>Arrastre aquí una solicitud de concurso</strong>
+                <span>PDF con texto · no se envía a ningún servidor</span>
+              </label>
+              <div id="upload-status"></div>
+            </section>
+
+            <section class="judicial-section-card">
+              <div class="judicial-section-heading compact"><div><div class="judicial-kicker">Atención</div><h2>Prioridad</h2></div></div>
+              <div id="dashboard-attention" class="attention-summary"></div>
+            </section>
+          </div>
+
+          <section class="judicial-section-card">
+            <div class="judicial-section-heading">
+              <div><div class="judicial-kicker">Actividad reciente</div><h2>Últimos procedimientos</h2><p>Los expedientes se ordenan por última modificación.</p></div>
+              <button class="judicial-link-action" data-app-view="procedimientos">Ver todos →</button>
+            </div>
+            <div id="dashboard-recent" class="case-list"></div>
+          </section>
+        </section>
+
+        <section id="view-procedimientos" class="app-view oculto">
+          <div class="procedures-hero">
+            <div><div class="judicial-kicker">Expedientes</div><h1>Procedimientos</h1><p>Listado local de solicitudes incorporadas y su estado de tramitación.</p></div>
+            <button class="judicial-new-button" data-trigger-upload>＋ Incorporar solicitud</button>
+          </div>
+          <div class="procedures-toolbar">
+            <label class="search-box"><span>⌕</span><input id="case-search" type="search" placeholder="Buscar por deudor, NIF o procedimiento"></label>
+            <select id="case-filter">
+              <option value="todos">Todos los estados</option>
+              <option value="pendiente_decision">Necesitan decisión</option>
+              <option value="listo_auto">Listos para auto</option>
+              <option value="auto_generado">Auto generado</option>
+              <option value="concluido">Conclusión generada</option>
+              <option value="bloqueado">Bloqueados</option>
+            </select>
+          </div>
+          <section class="judicial-section-card">
+            <div id="procedure-list" class="case-list full"></div>
+          </section>
+        </section>
+
+        <section id="view-workspace" class="app-view oculto case-workspace">
+          <header id="case-header" class="case-ejcat-header"></header>
+          <nav id="case-tabs" class="case-ejcat-nav" aria-label="Áreas del expediente">
+            <button class="active" data-case-tab="resumen">Resumen</button>
+            <button data-case-tab="solicitud">Solicitud</button>
+            <button data-case-tab="acreedores">Acreedores</button>
+            <button data-case-tab="resolucion">Resolución</button>
+            <button data-case-tab="actividad">Actividad</button>
+          </nav>
+
+          <div class="case-workspace-content">
+            <section id="case-tab-resumen" class="case-tab">
+              <div id="case-overview"></div>
+            </section>
+
+            <section id="case-tab-solicitud" class="case-tab oculto">
+              <div class="case-subworkspace">
+                <div class="case-workspace-card">
+                  <div class="case-section-heading"><div><span class="case-section-kicker">Solicitud</span><h3>Datos leídos y revisables</h3></div></div>
+                  <div id="resumen"></div>
+                  <div id="campos"></div>
+                </div>
+                <div class="case-workspace-card">
+                  <div class="case-section-heading"><div><span class="case-section-kicker">Órgano</span><h3>Datos del juzgado</h3></div></div>
+                  <p class="nota">Se recuerdan en este navegador para los siguientes procedimientos.</p>
+                  <div id="juzgado" class="rejilla"></div>
+                </div>
+              </div>
+            </section>
+
+            <section id="case-tab-acreedores" class="case-tab oculto">
+              <div class="case-workspace-card">
+                <div class="case-section-heading"><div><span class="case-section-kicker">Pasivo</span><h3>Relación de acreedores</h3></div></div>
+                <div id="acreedores"></div>
+              </div>
+            </section>
+
+            <section id="case-tab-resolucion" class="case-tab oculto">
+              <div class="case-workspace-card">
+                <div class="case-section-heading"><div><span class="case-section-kicker">Decisión judicial</span><h3>Auto de declaración</h3></div></div>
+                <p class="nota">El motor no decide: competencia, insolvencia y supuesto del art. 37 bis siguen siendo confirmaciones judiciales.</p>
+                <div id="decision" class="rejilla"></div>
+                <div class="acciones"><button id="generar-declaracion" class="principal">Generar auto de declaración</button></div>
+                <div id="resultado-declaracion"></div>
+              </div>
+
+              <div class="case-workspace-card oculto" id="paso-5">
+                <div class="case-section-heading"><div><span class="case-section-kicker">Fase posterior</span><h3>Auto de conclusión</h3></div></div>
+                <p class="nota">Cuando haya transcurrido el trámite del art. 37 ter TRLC.</p>
+                <div id="conclusion" class="rejilla"></div>
+                <div class="acciones"><button id="generar-conclusion" class="principal">Generar auto de conclusión</button></div>
+                <div id="resultado-conclusion"></div>
+              </div>
+            </section>
+
+            <section id="case-tab-actividad" class="case-tab oculto">
+              <div id="case-activity"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <footer class="pie">Borradores sin valor hasta su revisión y firma · datos de expedientes guardados localmente en este navegador.</footer>
     </div>
-    <div class="sellos">
-      <span class="sello">Local</span><span class="sello">Sin IA</span><span class="sello">Determinista</span>
-    </div>
-  </header>
+  </div>
 
-  <main>
-    <section class="paso" id="paso-1">
-      <h2><span class="num">1</span> Solicitud</h2>
-      <label class="zona" id="zona" tabindex="0">
-        <input type="file" id="fichero" accept="application/pdf,.pdf" hidden>
-        <strong>Arrastre aquí la solicitud de concurso (PDF)</strong>
-        <span>o pulse para elegirla · el PDF se lee en este ordenador y no se envía a ningún sitio</span>
-      </label>
-      <p class="nota">Solo PDF con texto (generado por ordenador). Un PDF escaneado no se puede leer de forma determinista.</p>
-      <div id="resumen"></div>
-    </section>
-
-    <section class="paso oculto" id="paso-2">
-      <h2><span class="num">2</span> Revise lo que se ha leído</h2>
-      <p class="nota">Cada dato indica de qué línea del PDF sale. Corrija lo que haga falta: el auto se genera con lo que quede aquí.</p>
-      <div id="campos"></div>
-      <h3>Relación de acreedores</h3>
-      <div id="acreedores"></div>
-    </section>
-
-    <section class="paso oculto" id="paso-3">
-      <h2><span class="num">3</span> Datos del juzgado</h2>
-      <p class="nota">No constan en la solicitud. Se recuerdan en este navegador para la próxima vez.</p>
-      <div id="juzgado" class="rejilla"></div>
-    </section>
-
-    <section class="paso oculto" id="paso-4">
-      <h2><span class="num">4</span> Decisión del juez</h2>
-      <p class="nota">El motor no decide: sin estas confirmaciones no redacta el auto.</p>
-      <div id="decision" class="rejilla"></div>
-      <div class="acciones"><button id="generar-declaracion" class="principal">Generar auto de declaración</button></div>
-      <div id="resultado-declaracion"></div>
-    </section>
-
-    <section class="paso oculto" id="paso-5">
-      <h2><span class="num">5</span> Después: auto de conclusión</h2>
-      <p class="nota">Cuando haya transcurrido el trámite del art. 37 ter TRLC. Usa los mismos datos del deudor y de los acreedores.</p>
-      <div id="conclusion" class="rejilla"></div>
-      <div class="acciones"><button id="generar-conclusion" class="principal">Generar auto de conclusión</button></div>
-      <div id="resultado-conclusion"></div>
-    </section>
-  </main>
-
-  <footer class="pie">Borradores sin valor hasta su revisión y firma. Los bloques de texto están pendientes de ratificación por el magistrado.</footer>
   <script type="module" src="/web/app.mjs"></script>
 </body>
 </html>
