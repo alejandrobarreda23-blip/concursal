@@ -158,4 +158,8 @@ La extracción documental se separa también del conocimiento.
 
 La IA se limita a extraer hechos expresos del escrito y debe devolver evidencia de página/línea. No puede decidir competencia, insolvencia, art. 37 bis, buena fe ni EPI. El resultado es una propuesta revisable y el lector determinista permanece disponible como fallback.
 
-La interfaz deja la extracción IA desactivada por defecto. Activarla supone enviar el texto extraído del PDF al proveedor configurado; el fichero PDF no se remite por esta vía.
+La interfaz deja la extracción IA desactivada por defecto. Cuando se activa, la anonimización ocurre **antes** de la llamada a Netlify. El navegador mantiene un vault efímero con la correspondencia entre tokens y valores reales; ese vault no se persiste, no se serializa y no forma parte del body HTTP. El servidor sólo recibe el texto pseudonimizado y un manifiesto con conteos por categoría.
+
+La función aplica defensa en profundidad: rechaza peticiones sin manifiesto de privacidad, sin pseudónimos locales o con patrones de identificadores directos detectables. El prompt del extractor ordena tratar los tokens como valores opacos y prohíbe reconstruir identidades.
+
+Al recibir la respuesta estructurada, el navegador rehidrata los tokens localmente antes de fusionarlos con el lector determinista. Si el control local de fugas falla, no se hace ninguna petición de red.
