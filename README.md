@@ -14,7 +14,11 @@ npm run app        # abre http://localhost:5174
 
 También se puede publicar como sitio estático (Netlify lee `netlify.toml`: ejecuta `npm run build` y publica `dist/`). Aun así, el PDF se lee en el navegador de quien lo usa y no se envía a ningún servidor.
 
-Arrastre el PDF de la solicitud a la página. El motor:
+La página se abre ahora en una **bandeja concursal** inspirada en el workspace judicial del proyecto `legal`. Cada PDF incorporado crea un procedimiento local persistente en el navegador (IndexedDB, con fallback a localStorage), que puede reabrirse desde **Procedimientos**. El PDF original no se replica: se conserva la lectura estructurada, el expediente revisado, la actividad y los borradores generados.
+
+Cada expediente se abre como workspace completo con cinco áreas: **Resumen, Solicitud, Acreedores, Resolución y Actividad**. La home prioriza la situación procesal y la siguiente actuación; la cronología queda dentro del expediente.
+
+Arrastre el PDF de la solicitud a la bandeja. El motor:
 
 - **clasifica la petición**: concurso sin masa u ordinario, voluntario o necesario, persona física o jurídica, insolvencia actual o inminente, si pide EPI o plan de pagos, si acompaña el formulario del Anexo I de los Mercantiles de Barcelona;
 - **extrae los datos** del deudor, de la representación, las fechas, el activo y el pasivo declarados y la **relación de acreedores**, indicando la **página y la línea** del PDF de la que sale cada dato;

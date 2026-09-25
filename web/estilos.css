@@ -76,3 +76,268 @@ button:focus-visible, .zona:focus-visible, input:focus-visible, select:focus-vis
   .resolucion-preview { padding: 24px 18px 30px; }
   .auto-apartado, .auto-parrafo, .auto-dispositivo { font-size: 12.5px; }
 }
+
+
+/* =========================================================
+   Dashboard / procedimientos · patrón trasladado de Legal
+   ========================================================= */
+:root {
+  --nav: #102638;
+  --nav-ink: #f8fbfd;
+  --nav-muted: #93a9ba;
+  --surface: #ffffff;
+  --surface-muted: #f3f6f8;
+  --ink: #152c3d;
+  --ink-soft: #647989;
+  --line-strong: #bccbd5;
+  --action: #0f7a75;
+  --action-strong: #0b615d;
+  --action-soft: #e7f5f3;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --shadow-soft: 0 2px 12px rgba(19, 48, 69, .045);
+}
+body { background: #f4f7f9; color: var(--ink); }
+button { font-family: inherit; }
+.oculto { display: none !important; }
+
+.app-shell { min-height: 100vh; }
+.app-body { min-height: 100vh; margin-left: 16rem; display: flex; flex-direction: column; }
+.judicial-sidebar {
+  position: fixed; inset: 0 auto 0 0; z-index: 45; width: 16rem; padding: 1.25rem 1rem 1rem;
+  display: flex; flex-direction: column; background: var(--nav); color: var(--nav-ink);
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+.judicial-brand { display:flex; align-items:center; gap:.75rem; padding:.25rem .4rem 1.3rem; border-bottom:1px solid rgba(255,255,255,.08); }
+.judicial-brand-mark { display:grid; width:2.35rem; height:2.35rem; place-items:center; border-radius:.75rem; background:var(--action); color:#fff; font-size:.72rem; font-weight:800; letter-spacing:.08em; box-shadow:0 8px 24px rgba(15,122,117,.18); }
+.judicial-brand-title { font-size:.96rem; font-weight:700; letter-spacing:-.015em; }
+.judicial-brand-subtitle { margin-top:.1rem; color:var(--nav-muted); font-size:.68rem; }
+.judicial-nav { display:flex; flex:1; flex-direction:column; gap:1.05rem; overflow-y:auto; padding:1.15rem 0; }
+.judicial-nav-group { display:grid; gap:.2rem; }
+.judicial-nav-label { padding:0 .6rem .2rem; color:var(--nav-muted); font-size:.61rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+.judicial-nav-item { display:flex; width:100%; align-items:center; gap:.65rem; border:0; border-radius:.72rem; padding:.58rem .65rem; background:transparent; color:var(--nav-muted); font-size:.81rem; font-weight:600; }
+.judicial-nav-item:hover { background:rgba(255,255,255,.055); color:var(--nav-ink); }
+.judicial-nav-item.is-active { background:rgba(255,255,255,.09); color:#fff; box-shadow:inset 3px 0 0 var(--action); }
+.nav-icon { display:grid; place-items:center; width:1.25rem; font-size:1rem; }
+.judicial-nav-counter { display:grid; min-width:1.45rem; height:1.45rem; margin-left:auto; place-items:center; border-radius:999px; padding:0 .35rem; background:var(--action); color:#fff; font-size:.66rem; font-weight:800; }
+.judicial-sidebar-footer { display:grid; gap:.65rem; border-top:1px solid rgba(255,255,255,.08); padding-top:.8rem; }
+.judicial-sidebar-note { padding:0 .65rem; color:var(--nav-muted); font-size:.64rem; line-height:1.45; }
+.local-storage-pill { display:flex; align-items:center; gap:.45rem; padding:.45rem .65rem; color:#c9d7e1; font-size:.68rem; }
+.local-storage-pill span { width:.45rem; height:.45rem; border-radius:999px; background:#34d399; box-shadow:0 0 0 3px rgba(52,211,153,.1); }
+
+.judicial-topbar {
+  position:sticky; top:0; z-index:40; display:flex; min-height:4.35rem; align-items:center; justify-content:space-between; gap:1rem;
+  padding:.7rem 1.35rem; background:rgba(250,250,249,.93); border-bottom:1px solid rgba(204,214,221,.9); backdrop-filter:blur(14px);
+}
+.judicial-topbar-title { color:var(--ink); font-size:.96rem; font-weight:700; }
+.judicial-topbar-subtitle { margin-top:.05rem; color:var(--ink-soft); font-size:.68rem; }
+.judicial-topbar-actions { display:flex; align-items:center; gap:.45rem; }
+.judicial-new-button { display:inline-flex; align-items:center; min-height:2.35rem; border:0; border-radius:.72rem; padding:.48rem .8rem; background:var(--action); color:#fff; font-size:.76rem; font-weight:700; }
+.judicial-new-button:hover { background:var(--action-strong); }
+.judicial-mobile-nav { display:none; }
+.judicial-main { width:min(100%, 92rem); margin:0 auto; padding:1.6rem 1.4rem 4rem; flex:1; }
+.judicial-kicker { color:var(--ink-soft); font-size:.64rem; font-weight:750; letter-spacing:.115em; text-transform:uppercase; }
+
+.judicial-inbox { display:grid; gap:1.15rem; }
+.judicial-inbox-hero { display:flex; align-items:end; justify-content:space-between; gap:1.5rem; padding:.55rem .1rem .45rem; }
+.judicial-inbox-hero h1, .procedures-hero h1 { margin:.18rem 0 0; color:var(--ink); font-size:clamp(1.8rem,3.2vw,2.65rem); font-weight:720; letter-spacing:-.045em; line-height:1.05; }
+.judicial-inbox-hero p, .procedures-hero p { max-width:47rem; margin-top:.5rem; color:var(--ink-soft); font-size:.88rem; line-height:1.55; }
+.judicial-metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
+.judicial-metric-card { position:relative; min-height:9.2rem; overflow:hidden; border:1px solid #dce4e9; border-radius:var(--radius-lg); padding:1rem; background:var(--surface); text-align:left; box-shadow:var(--shadow-soft); }
+.judicial-metric-card::after { position:absolute; right:-1.2rem; bottom:-1.2rem; width:5.5rem; height:5.5rem; border-radius:999px; background:currentColor; content:''; opacity:.035; }
+.judicial-metric-icon { display:grid; width:2rem; height:2rem; place-items:center; border-radius:.62rem; background:#f3f5f6; font-size:.82rem; font-weight:800; }
+.judicial-metric-value { margin-top:.65rem; color:var(--ink); font-size:1.78rem; font-weight:760; letter-spacing:-.045em; line-height:1; font-variant-numeric:tabular-nums; }
+.judicial-metric-label { margin-top:.42rem; color:var(--ink); font-size:.78rem; font-weight:720; }
+.judicial-metric-description { margin-top:.12rem; color:var(--ink-soft); font-size:.67rem; }
+.tone-ready .judicial-metric-icon, .case-status-icon.tone-ready { background:#ecfdf5; color:#059669; }
+.tone-attention .judicial-metric-icon, .case-status-icon.tone-attention { background:#fff7ed; color:#b45309; }
+.tone-new .judicial-metric-icon, .case-status-icon.tone-generated, .case-status-icon.tone-done { background:#f5f3ff; color:#6d28d9; }
+.tone-neutral .judicial-metric-icon { background:#eef4f7; color:#46677f; }
+.case-status-icon.tone-blocked { background:#fff1f2; color:#be185d; }
+
+.dashboard-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(18rem,.7fr); gap:.85rem; align-items:start; }
+.judicial-section-card { overflow:hidden; border:1px solid #dce4e9; border-radius:var(--radius-lg); background:var(--surface); box-shadow:var(--shadow-soft); }
+.judicial-section-heading { display:flex; align-items:start; justify-content:space-between; gap:1rem; padding:1rem 1.05rem .9rem; border-bottom:1px solid #e2e8ec; }
+.judicial-section-heading.compact { align-items:center; padding:.9rem 1rem .75rem; }
+.judicial-section-heading h2 { margin:.12rem 0 0; color:var(--ink); font-size:.99rem; font-weight:720; letter-spacing:-.02em; }
+.judicial-section-heading p { margin:.2rem 0 0; color:var(--ink-soft); font-size:.69rem; }
+.judicial-link-action { border:0; background:transparent; color:var(--action-strong); font-size:.75rem; font-weight:700; padding:.35rem; }
+.upload-card .zona { margin:1rem; }
+.dashboard-dropzone { min-height:12rem; justify-content:center; border-color:#b7cbd8; background:#f5f9fc; }
+.dashboard-dropzone:hover { background:#eef6fb; border-color:#7fa9c3; }
+.upload-glyph { display:grid; width:2.5rem; height:2.5rem; place-items:center; border-radius:.8rem; background:#e0f2f1; color:var(--action); font-size:1.4rem; font-weight:500; }
+.loading-note { padding:0 1rem 1rem; }
+
+.attention-summary { display:grid; }
+.attention-case { display:flex; width:100%; align-items:center; gap:.65rem; border:0; border-bottom:1px solid #e5ebef; border-radius:0; padding:.82rem .95rem; background:#fff; text-align:left; }
+.attention-case:last-child { border-bottom:0; }
+.attention-case:hover { background:#f7fafb; }
+.attention-case > span:nth-child(2) { display:grid; gap:.12rem; flex:1; min-width:0; }
+.attention-case b { color:var(--ink); font-size:.76rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.attention-case small { color:var(--ink-soft); font-size:.65rem; }
+.attention-dot { width:.5rem; height:.5rem; border-radius:999px; flex:none; }
+.attention-dot.tone-ready { background:#10b981; }
+.attention-dot.tone-attention { background:#f59e0b; }
+.attention-dot.tone-blocked { background:#e11d48; }
+.judicial-mini-empty { padding:1rem; color:var(--ink-soft); font-size:.7rem; }
+
+.case-list { display:grid; }
+.case-row { position:relative; display:flex; border-bottom:1px solid #e4e9ed; }
+.case-row:last-child { border-bottom:0; }
+.case-row-main { display:flex; flex:1; min-width:0; align-items:center; gap:.8rem; border:0; border-radius:0; padding:.92rem 1.05rem; background:#fff; text-align:left; }
+.case-row-main:hover { background:#f7faf9; }
+.case-status-icon { display:grid; width:2.45rem; height:2.45rem; place-items:center; flex:none; border-radius:.78rem; background:#f3f6f8; font-size:.86rem; font-weight:800; }
+.case-row-body { flex:1; min-width:0; display:block; }
+.case-row-titleline { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+.case-row-titleline strong { color:var(--ink); font-size:.84rem; font-weight:720; }
+.case-status-chip { border-radius:999px; padding:.18rem .48rem; font-size:.6rem; font-weight:720; }
+.case-status-chip.tone-ready { background:#ecfdf5; color:#047857; }
+.case-status-chip.tone-attention { background:#fff7ed; color:#b45309; }
+.case-status-chip.tone-blocked { background:#fff1f2; color:#be185d; }
+.case-status-chip.tone-generated { background:#f5f3ff; color:#6d28d9; }
+.case-status-chip.tone-done { background:#eff6ff; color:#1d4ed8; }
+.case-row-subtitle { display:block; margin-top:.17rem; overflow:hidden; color:var(--ink-soft); font-size:.69rem; text-overflow:ellipsis; white-space:nowrap; }
+.case-row-meta { display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; margin-top:.35rem; color:var(--ink-soft); font-size:.62rem; }
+.case-row-amount { display:grid; min-width:7rem; gap:.05rem; text-align:right; }
+.case-row-amount small { color:var(--ink-soft); font-size:.58rem; text-transform:uppercase; letter-spacing:.08em; }
+.case-row-amount b { color:var(--ink); font-size:.94rem; font-weight:760; }
+.case-row-action { color:var(--action-strong); font-size:.7rem; font-weight:720; }
+.case-row-delete { align-self:center; margin-right:.65rem; width:2rem; height:2rem; padding:0; border:0; border-radius:.5rem; background:transparent; color:#96a4ad; font-size:1.2rem; }
+.case-row-delete:hover { background:#fff1f2; color:#be123c; }
+.judicial-empty-state { display:grid; min-height:13rem; place-items:center; align-content:center; gap:.35rem; color:var(--ink-soft); text-align:center; padding:1rem; }
+.judicial-empty-state strong { color:var(--ink); font-size:.82rem; }
+.judicial-empty-state span:last-child { max-width:28rem; font-size:.68rem; line-height:1.45; }
+.empty-glyph { font-size:1.7rem; color:#73a4a1; }
+
+.procedures-hero { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin-bottom:1.1rem; }
+.procedures-toolbar { display:flex; gap:.7rem; margin-bottom:.8rem; }
+.search-box { display:flex; flex:1; align-items:center; gap:.5rem; border:1px solid #d3dee5; border-radius:.72rem; padding:.55rem .75rem; background:#fff; }
+.search-box input { flex:1; border:0; outline:0; font:inherit; color:var(--ink); background:transparent; }
+.procedures-toolbar select { min-width:14rem; border:1px solid #d3dee5; border-radius:.72rem; padding:.55rem .75rem; background:#fff; color:var(--ink); font:inherit; font-size:.78rem; }
+
+/* Workspace estilo eJCAT modernizado */
+.case-workspace { width:calc(100% + 2.8rem); margin:-1.6rem -1.4rem -4rem; }
+.case-ejcat-header { background:linear-gradient(180deg,#f8fbfe 0%,#edf5fb 100%); border-bottom:1px solid #bfd5e6; box-shadow:0 1px 0 rgba(25,78,121,.06); }
+.case-ejcat-topline { min-height:42px; padding:0 28px; display:grid; grid-template-columns:minmax(150px,1fr) auto minmax(220px,1fr); align-items:center; gap:18px; border-bottom:1px solid #d6e5f0; font-size:12px; color:#526a7d; }
+.case-ejcat-back { display:inline-flex; align-items:center; gap:7px; width:max-content; border:0; background:transparent; color:#145c94; font-weight:700; padding:0; }
+.case-ejcat-institution { text-align:center; display:flex; align-items:baseline; gap:9px; color:#235e8d; }
+.case-ejcat-institution span { font-weight:800; color:#0f5f9d; }
+.case-ejcat-institution b { font-weight:500; color:#60798d; }
+.case-ejcat-unit { text-align:right; font-weight:600; color:#315e7e; }
+.case-ejcat-matter { padding:20px 30px 18px; display:flex; justify-content:space-between; gap:36px; align-items:flex-end; max-width:1540px; width:100%; margin:0 auto; }
+.case-ejcat-kicker,.case-section-kicker { font-size:10px; line-height:1.2; text-transform:uppercase; letter-spacing:.12em; font-weight:800; color:#4f7897; }
+.case-ejcat-title-row { display:flex; gap:12px; align-items:center; margin-top:5px; }
+.case-ejcat-title-row h1 { margin:0; font-size:26px; line-height:1.15; font-weight:760; letter-spacing:-.025em; color:#102c43; }
+.case-ejcat-phase { font-size:11px; font-weight:700; padding:4px 9px; border-radius:999px; border:1px solid #c3dcee; }
+.case-ejcat-phase.tone-ready { background:#e8f7ef; color:#087455; border-color:#c6ead7; }
+.case-ejcat-phase.tone-attention { background:#fff5df; color:#8b5c09; border-color:#f0d5a1; }
+.case-ejcat-phase.tone-blocked { background:#fff0f2; color:#a82348; border-color:#efc9d4; }
+.case-ejcat-phase.tone-generated,.case-ejcat-phase.tone-done { background:#eef1ff; color:#4f46a5; border-color:#d8dcf6; }
+.case-ejcat-matter p { font-size:14px; color:#506777; margin:5px 0 0; }
+.case-ejcat-matter p span { color:#8aa0af; margin:0 4px; }
+.case-ejcat-identifiers { display:flex; gap:28px; align-items:flex-end; }
+.case-ejcat-identifiers div { display:flex; flex-direction:column; gap:2px; min-width:70px; }
+.case-ejcat-identifiers span { font-size:9px; text-transform:uppercase; letter-spacing:.11em; color:#7890a1; font-weight:700; }
+.case-ejcat-identifiers b { font-size:14px; color:#173d5a; }
+.case-ejcat-identifiers b.is-attention { color:#a4650b; }
+.case-ejcat-nav { background:#fff; border-bottom:1px solid #cfdde8; display:flex; padding:0 28px; gap:2px; min-height:48px; align-items:end; }
+.case-ejcat-nav button { height:48px; padding:0 17px; display:flex; align-items:center; border:0; border-bottom:3px solid transparent; border-radius:0; background:transparent; color:#587083; font-size:13px; font-weight:650; }
+.case-ejcat-nav button:hover { background:#f4f8fb; color:#185a88; }
+.case-ejcat-nav button.active { color:#0f5d94; border-bottom-color:#1673ad; background:#f6fbff; }
+.case-workspace-content { padding:30px clamp(22px,4vw,64px) 54px; background:#f4f7fa; min-height:70vh; }
+.case-workspace-content.resolution-mode { padding:22px clamp(16px,3vw,42px) 46px; background:#f5f5f2; }
+.case-overview,.case-subworkspace,.case-activity-workspace { max-width:1320px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+.case-overview-lead { background:#fff; border:1px solid #d8e2ea; border-top:3px solid #1f6e9f; border-radius:10px; padding:23px 25px; display:flex; justify-content:space-between; gap:28px; align-items:center; box-shadow:0 2px 10px rgba(24,61,89,.04); }
+.case-overview-lead h2 { font-size:19px; font-weight:730; color:#17374f; margin:4px 0 0; }
+.case-overview-lead p { font-size:13px; color:#647b8c; margin:3px 0 0; }
+.case-next-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.case-next-actions button { border:0; background:#0f6f83; color:#fff; border-radius:7px; padding:9px 12px; font-size:12px; font-weight:700; }
+.case-attention-strip { display:flex; align-items:center; gap:12px; border:1px solid #eed5a4; background:#fff9ec; color:#795918; border-radius:9px; padding:13px 15px; }
+.case-attention-strip>div { display:flex; flex-direction:column; flex:1; }
+.case-attention-strip b { font-size:13px; }
+.case-attention-strip span { font-size:11px; color:#98752e; }
+.case-attention-strip button { border:0; background:transparent; font-size:11px; font-weight:700; color:#855d0a; }
+.case-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.case-summary-grid article { background:#fff; border:1px solid #dbe4eb; border-radius:9px; padding:16px; min-height:105px; }
+.case-summary-grid span { display:block; font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:#8193a2; font-weight:750; }
+.case-summary-grid b { display:block; font-size:15px; color:#17374f; margin-top:9px; line-height:1.25; }
+.case-summary-grid small { display:block; font-size:11px; color:#718493; margin-top:5px; }
+.case-process-card,.case-workspace-card { background:#fff; border:1px solid #dbe4eb; border-radius:9px; padding:20px 22px; }
+.case-section-heading { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.case-section-heading h3 { margin:3px 0 0; font-size:16px; font-weight:720; color:#17374f; }
+.case-section-heading button { border:0; background:transparent; font-size:11px; font-weight:700; color:#17689a; }
+.case-origin-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.case-origin-grid>div { border-left:2px solid #e0eaf0; padding-left:10px; }
+.case-origin-grid span { display:block; font-size:9px; text-transform:uppercase; letter-spacing:.09em; color:#8193a2; font-weight:750; }
+.case-origin-grid b { display:block; margin-top:4px; font-size:12px; color:#25455d; word-break:break-word; }
+.case-origin-grid small { display:block; margin-top:3px; color:#718493; font-size:10px; }
+.mono { font-family:ui-monospace,Menlo,Consolas,monospace; }
+
+.case-activity-workspace { display:grid; gap:16px; }
+.case-activity-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:28px; padding:20px 22px; background:#fff; border:1px solid #d8e2ea; border-top:3px solid #1f6e9f; border-radius:9px; }
+.case-activity-hero h2 { margin:4px 0 0; font-size:20px; font-weight:740; color:#17374f; }
+.case-activity-hero p { max-width:650px; margin:4px 0 0; font-size:12px; line-height:1.5; color:#687f90; }
+.case-activity-metrics { display:flex; gap:9px; }
+.case-activity-metrics article { min-width:105px; padding:10px 12px; background:#f5f9fc; border:1px solid #dce8f0; border-radius:7px; }
+.case-activity-metrics span { display:block; font-size:9px; text-transform:uppercase; letter-spacing:.09em; color:#7b91a2; font-weight:750; }
+.case-activity-metrics strong { display:block; margin-top:3px; font-size:19px; color:#173e5b; }
+.case-activity-metrics .date-small { font-size:12px; }
+.case-activity-stream { background:#fff; border:1px solid #dbe4eb; border-radius:9px; overflow:hidden; }
+.case-activity-event { display:flex; gap:12px; padding:14px 16px; border-bottom:1px solid #e6edf1; }
+.case-activity-event:last-child { border-bottom:0; }
+.case-activity-marker { display:grid; width:30px; height:30px; place-items:center; border-radius:8px; background:#eef6fb; color:#17689a; font-size:11px; font-weight:800; flex:none; }
+.case-activity-event div { display:grid; gap:2px; }
+.case-activity-event strong { color:#17374f; font-size:12px; }
+.case-activity-event small { color:#7890a1; font-size:10px; }
+.case-activity-event p { margin:2px 0 0; color:#617887; font-size:11px; }
+.case-activity-empty { padding:1rem; color:#718493; font-size:12px; }
+
+.case-workspace-card .resultado { border-top:1px solid #e0e6ea; margin-top:18px; }
+.case-workspace-card .texto-auto { max-height:none; }
+
+@media(max-width:1180px) {
+  .judicial-metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dashboard-grid { grid-template-columns:1fr; }
+  .case-origin-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:900px) {
+  .judicial-sidebar { display:none; }
+  .app-body { margin-left:0; }
+  .judicial-mobile-nav { display:flex; position:sticky; top:4.35rem; z-index:39; overflow-x:auto; gap:.35rem; padding:.5rem .65rem; background:var(--nav); border-bottom:1px solid rgba(255,255,255,.08); }
+  .judicial-mobile-nav-item { display:inline-flex; flex:none; align-items:center; border:0; border-radius:999px; padding:.45rem .65rem; background:transparent; color:var(--nav-muted); font-size:.72rem; }
+  .judicial-mobile-nav-item.is-active { background:rgba(255,255,255,.1); color:#fff; }
+  .case-workspace { width:calc(100% + 2.8rem); }
+  .case-ejcat-topline { grid-template-columns:1fr auto; padding:0 16px; }
+  .case-ejcat-institution { display:none; }
+  .case-ejcat-unit { font-size:10px; }
+  .case-ejcat-matter { padding:16px; align-items:flex-start; flex-direction:column; }
+  .case-ejcat-identifiers { width:100%; justify-content:space-between; gap:12px; }
+  .case-ejcat-nav { padding:0 8px; overflow-x:auto; }
+  .case-ejcat-nav button { padding:0 11px; white-space:nowrap; }
+  .case-workspace-content { padding:18px 12px 40px; }
+  .case-overview-lead { align-items:flex-start; flex-direction:column; }
+  .case-next-actions { justify-content:flex-start; }
+  .case-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .case-activity-hero { align-items:flex-start; flex-direction:column; }
+}
+@media(max-width:700px) {
+  .judicial-topbar { align-items:flex-start; padding:.65rem .8rem; }
+  .judicial-main { padding:1.05rem .8rem 3rem; }
+  .judicial-inbox-hero,.procedures-hero { align-items:flex-start; flex-direction:column; }
+  .judicial-metric-grid { grid-template-columns:1fr 1fr; }
+  .judicial-metric-card { min-height:8.2rem; }
+  .procedures-toolbar { flex-direction:column; }
+  .procedures-toolbar select { min-width:0; width:100%; }
+  .case-row-main { align-items:flex-start; flex-wrap:wrap; padding-right:.35rem; }
+  .case-row-amount { margin-left:3.25rem; text-align:left; }
+  .case-row-action { margin-left:auto; }
+}
+@media(max-width:520px) {
+  .judicial-topbar-subtitle { display:none; }
+  .judicial-new-button { padding:.45rem .55rem; font-size:.68rem; }
+  .case-summary-grid,.case-origin-grid { grid-template-columns:1fr; }
+  .case-ejcat-identifiers { display:grid; grid-template-columns:repeat(2,1fr); }
+  .case-ejcat-title-row { align-items:flex-start; flex-direction:column; }
+  .case-row-amount { min-width:auto; }
+  .case-row-delete { margin-right:.25rem; }
+}
