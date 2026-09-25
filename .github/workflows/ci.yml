@@ -19,5 +19,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm test
+      - name: Regression tests
+        run: node --test test/*.test.mjs
+      - name: Integrity + full test
+        run: npm test
       - run: npm run build
