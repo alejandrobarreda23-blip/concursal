@@ -131,3 +131,22 @@ No subas solicitudes ni expedientes reales a este repositorio. `.gitignore` excl
 ## Hoja de ruta
 
 Ver `docs/hoja-de-ruta.md`.
+
+
+## Knowledge de persona física
+
+La fuente `knowledge/source/concursal/kb-concurso-persona-fisica-1.0.0.json` se conserva íntegra y versionada como corpus de entrada. Un adaptador de dominio la proyecta al contrato común del Legal Core sin trasladar semántica concursal a `src/core/`.
+
+El pack importado aporta normas, reglas JSON Logic, fases, cálculos, plazos, checklists, fundamentos tipo, resoluciones, jurisprudencia y una lista explícita de extremos pendientes de verificar. Se carga junto al pack de paridad de concurso sin masa, pero no desplaza automáticamente el comportamiento ya certificado: amplía el registro de Knowledge y puede activarse por módulos a medida que se validen.
+
+### Extracción de solicitudes
+
+La lectura del PDF sigue teniendo un extractor local determinista como fallback. Opcionalmente puede activarse una **extracción IA asistida**:
+
+1. PDF.js obtiene el texto y conserva marcadores de página/línea.
+2. El navegador envía únicamente ese texto a una Netlify Function same-origin.
+3. La función llama al proveedor configurado y exige una salida JSON estructurada.
+4. La propuesta de IA se fusiona con la lectura local, conserva evidencia y confianza y queda siempre marcada como `review_required`.
+5. Ninguna salida de extracción puede escribir `decision_judicial`.
+
+La clave del proveedor vive exclusivamente en variables de entorno de Netlify. Si no existe `OPENAI_API_KEY` o el servicio falla, la aplicación continúa con el lector determinista sin bloquear el expediente.
