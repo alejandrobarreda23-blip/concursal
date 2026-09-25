@@ -1,0 +1,44 @@
+{
+  "_nota": "Expediente FICTICIO para pruebas. Ningún dato corresponde a personas reales.",
+  "organo": {
+    "tribunal": "Tribunal de Instancia de Girona",
+    "seccion": "Sección de lo Mercantil",
+    "plaza": 2,
+    "denominacion_historica": "Juzgado de lo Mercantil n.º 2 de Girona",
+    "localidad": "Girona"
+  },
+  "procedimiento": {
+    "numero": "999/2026",
+    "nig": "1707900000000000001"
+  },
+  "juez": {
+    "nombre": "Nombre Apellido Ficticio",
+    "cargo": "Magistrado"
+  },
+  "fecha_resolucion": "2026-07-15",
+  "numero_resolucion": "100/2026",
+  "deudor": {
+    "nombre": "Sociedad Ejemplo 2025, S.L.",
+    "tipo": "persona_juridica"
+  },
+  "representacion": {
+    "procurador": "Procuradora Ejemplo",
+    "abogado": "Abogado Ejemplo"
+  },
+  "tramite": {
+    "auto_declaracion_sin_masa": {
+      "fecha": "2026-03-10"
+    },
+    "solicitud_nombramiento_ac": false,
+    "auto_complementario_37_quinquies": false,
+    "solicitud_epi": null,
+    "oposiciones": []
+  },
+  "exoneracion_previa": {
+    "existe": false
+  },
+  "creditos": [],
+  "decision_judicial": {
+    "sentido": "concluir_sin_epi"
+  }
+}

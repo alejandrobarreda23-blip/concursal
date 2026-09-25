@@ -1,0 +1,91 @@
+{
+  "_nota": "Expediente FICTICIO para pruebas. Ningún dato corresponde a personas reales.",
+  "organo": {
+    "tribunal": "Tribunal de Instancia de Girona",
+    "seccion": "Sección de lo Mercantil",
+    "plaza": 2,
+    "denominacion_historica": "Juzgado de lo Mercantil n.º 2 de Girona",
+    "localidad": "Girona"
+  },
+  "procedimiento": {
+    "numero": "999/2026",
+    "nig": "1707900000000000001"
+  },
+  "juez": {
+    "nombre": "Nombre Apellido Ficticio",
+    "cargo": "Magistrado"
+  },
+  "fecha_resolucion": "2026-07-15",
+  "numero_resolucion": "100/2026",
+  "deudor": {
+    "nombre": "Persona Deudora Ejemplo",
+    "tipo": "persona_natural"
+  },
+  "representacion": {
+    "procurador": "Procuradora Ejemplo",
+    "abogado": "Abogado Ejemplo"
+  },
+  "tramite": {
+    "auto_declaracion_sin_masa": {
+      "fecha": "2026-03-10"
+    },
+    "solicitud_nombramiento_ac": false,
+    "auto_complementario_37_quinquies": false,
+    "solicitud_epi": {
+      "fecha": "2026-04-20"
+    },
+    "traslado_acreedores": true,
+    "oposiciones": []
+  },
+  "exoneracion_previa": {
+    "existe": false
+  },
+  "creditos": [
+    {
+      "id": "C1",
+      "acreedor": "Banco Hipotecario Ficticio, S.A.",
+      "concepto": "Préstamo con garantía hipotecaria",
+      "importe": 90000,
+      "clase": "garantia_real",
+      "valor_garantia": 60000,
+      "vencimiento": "vencido"
+    },
+    {
+      "id": "C2",
+      "acreedor": "Tesorería General de la Seguridad Social",
+      "concepto": "Cuotas de autónomos",
+      "importe": 15000,
+      "clase": "publico_tgss",
+      "vencimiento": "vencido"
+    },
+    {
+      "id": "C3",
+      "acreedor": "Excónyuge (pensión de alimentos)",
+      "concepto": "Pensión de alimentos atrasada",
+      "importe": 3600,
+      "clase": "alimentos",
+      "vencimiento": "vencido"
+    },
+    {
+      "id": "C4",
+      "acreedor": "Ayuntamiento Ficticio",
+      "concepto": "IBI e impuesto de vehículos",
+      "importe": 640.5,
+      "clase": "publico_otro",
+      "vencimiento": "vencido"
+    },
+    {
+      "id": "C5",
+      "acreedor": "Proveedor Ejemplo, S.L.",
+      "concepto": "Facturas de suministro",
+      "importe": 2300,
+      "clase": "ordinario",
+      "vencimiento": "vencido"
+    }
+  ],
+  "decision_judicial": {
+    "sentido": "conceder_epi",
+    "buena_fe_verificada": true,
+    "excepciones_art_487": []
+  }
+}

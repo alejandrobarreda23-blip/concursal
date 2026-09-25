@@ -1,0 +1,7 @@
+node_modules/
+salida/
+*.log
+.DS_Store
+# Nunca subir expedientes reales
+expedientes/
+*.real.json

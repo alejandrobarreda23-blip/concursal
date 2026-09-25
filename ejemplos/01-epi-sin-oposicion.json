@@ -1,0 +1,31 @@
+{
+  "_nota": "Expediente FICTICIO para pruebas. Ningún dato corresponde a personas reales.",
+  "organo": {
+    "tribunal": "Tribunal de Instancia de Girona",
+    "seccion": "Sección de lo Mercantil",
+    "plaza": 2,
+    "denominacion_historica": "Juzgado de lo Mercantil n.º 2 de Girona",
+    "localidad": "Girona"
+  },
+  "procedimiento": { "numero": "999/2026", "nig": "1707900000000000001" },
+  "juez": { "nombre": "Nombre Apellido Ficticio", "cargo": "Magistrado" },
+  "fecha_resolucion": "2026-07-15",
+  "numero_resolucion": "100/2026",
+  "deudor": { "nombre": "Persona Deudora Ejemplo", "tipo": "persona_natural" },
+  "representacion": { "procurador": "Procuradora Ejemplo", "abogado": "Abogado Ejemplo" },
+  "tramite": {
+    "auto_declaracion_sin_masa": { "fecha": "2026-03-10" },
+    "solicitud_nombramiento_ac": false,
+    "auto_complementario_37_quinquies": false,
+    "solicitud_epi": { "fecha": "2026-04-20" },
+    "traslado_acreedores": true,
+    "oposiciones": []
+  },
+  "exoneracion_previa": { "existe": false },
+  "creditos": [
+    { "id": "C1", "acreedor": "Banco Ficticio, S.A.", "concepto": "Préstamo personal", "importe": 12000, "clase": "ordinario", "vencimiento": "no_vencido" },
+    { "id": "C2", "acreedor": "Financiera Ejemplo, S.A.", "concepto": "Tarjeta de crédito", "importe": 1750.21, "clase": "ordinario", "vencimiento": "vencido" },
+    { "id": "C3", "acreedor": "Agencia Estatal de Administración Tributaria", "concepto": "IRPF y recargos", "importe": 8000, "clase": "publico_aeat", "vencimiento": "vencido" }
+  ],
+  "decision_judicial": { "sentido": "conceder_epi", "buena_fe_verificada": true, "excepciones_art_487": [] }
+}

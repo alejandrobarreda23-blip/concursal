@@ -1,0 +1,19 @@
+{
+  "name": "autos-concurso-sin-masa",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generador determinista de borradores de autos de conclusión del concurso sin masa (con o sin exoneración del pasivo insatisfecho).",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node scripts/integridad.mjs --comprobar && node --test test/*.test.mjs",
+    "generar": "node cli/generar.mjs",
+    "ejemplos": "for f in ejemplos/*.json; do node cli/generar.mjs \"$f\" --salida salida --docx; done",
+    "ratificar": "node scripts/ratificar.mjs",
+    "integridad": "node scripts/integridad.mjs --escribir",
+    "golden": "node scripts/actualizar-golden.mjs"
+  },
+  "dependencies": {
+    "docx": "9.5.1"
+  }
+}

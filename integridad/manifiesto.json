@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "ficheros": {
+    "packs/concurso-sin-masa.v1.json": "cf30d242ce77e3d2b826e987bbee3fae397ec1c182d7bad3bb5e860919db14ff",
+    "src/bloques.mjs": "5fce3ee5b4cfc0d438e517b9e6c5f99fc60db8594ffaa9fc3a989169d2fe5d2f",
+    "src/controles-calidad.mjs": "0d1f2887b4fc9c3a4c03400e1867d6cc35bac15c62d1e4961c6f150a644b3277",
+    "src/creditos.mjs": "67d4161cf945bc73f9ba907427a7e845945814348cf553319c8508dfa9e2b4a9",
+    "src/docx.mjs": "d5dbcbe4091fb6e38daa4d8dc650f4fdc736d4acf4fb81a80d83264516eebbe1",
+    "src/fases.mjs": "42b2bf0b91bb951a70275fbec886085f1adf540edc680619120791f1ed750453",
+    "src/index.mjs": "a2acbe650f47457cfbf3906e2abd3737f7f74b8cc8aa43dde0c5c69c59fd07bb",
+    "src/render.mjs": "01cd1b5f9764a71888834cc90ca9768fb9a2953fed9d80c8b82864c4378262b8",
+    "src/resolucion-ir.mjs": "d32a7948a43563643f4d43b5cde4b6a9a272394d32dfade6fcb4c76150e9d23b",
+    "src/sha256-sync.mjs": "367918dece8be8a4318bb1afa43ceb8514403ce4e3b3bfb2984d8748b5098ca3",
+    "src/util.mjs": "f720cd39425b055d18fcf4236ba1b7426591abcbb271343950ccc9709eb4660b",
+    "src/validar-expediente.mjs": "0a4c08697e3b7078b4ba3e0bfdd8367d2f94c1fe253fcbf0a2b60a94577c98be",
+    "test/golden/01-epi-sin-oposicion.json": "278742d138e4826c11b8fd4dee51b1d88c3722ce517653652e134e6118e88002",
+    "test/golden/01-epi-sin-oposicion.txt": "5fa1cfbf1fe650b13f4b014b5560f5cdb4cbd74fb48ae7c29193c5a1b930e1b9",
+    "test/golden/02-con-oposicion.json": "1fe7964dd46d1e98206bf4cbb6711df4a60ebe6122ea27854fdd735945422bcc",
+    "test/golden/03-persona-juridica-sin-epi.json": "b42a7cfb04a353c22fbfa1d1ab8b46d10c7e5ed91f9dfc92dff263f7fef4f6e4",
+    "test/golden/03-persona-juridica-sin-epi.txt": "fc1eb0aea90cb7b3d2c59e64139611cfbe401d332050ac804e64e2495b0c5746",
+    "test/golden/04-garantia-real-y-publico.json": "0ea16e38c3686f1b7ba9b964ddf641efb70a10eed0e2782b547298b86ad05df8",
+    "test/golden/04-garantia-real-y-publico.txt": "704a7b517be7ec7e281a8568296478f34cd4256634205f46b9f231a0dd4857f4"
+  }
+}
