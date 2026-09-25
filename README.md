@@ -5,6 +5,18 @@
 1. **Declaración** de concurso sin masa (art. 37 ter), a partir de la solicitud del deudor en PDF.
 2. **Conclusión**, con o sin **exoneración del pasivo insatisfecho (EPI)**, con los mismos datos.
 
+## Arquitectura: Legal Core + Knowledge
+
+Desde esta versión, el conocimiento jurídico del concurso sin masa deja de residir en el motor. La aplicación adopta el patrón ya utilizado en el repositorio `legal`:
+
+- **Legal Core**: contratos, workflow, clasificación configurable, frontera de decisión humana, IR, redacción, calidad, persistencia y auditoría.
+- **Knowledge Pack**: cuestiones jurídicas, reglas, fuentes, catálogos, workflows, bloques de redacción, antipatrones, conflictos y huecos.
+- **Adaptadores de dominio**: traducen el expediente concursal al contrato del core, sin convertir reglas jurídicas en infraestructura.
+
+El primer pack vive en `knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json`. El runtime ya consume ese pack para los supuestos del art. 37 bis, la máquina de fases, la clasificación de créditos y las plantillas de declaración/conclusión. Los JSON de `packs/` se conservan temporalmente como fixtures de paridad legacy: las pruebas exigen que la proyección del Knowledge produzca exactamente los mismos bloques.
+
+La idea es que un procedimiento nuevo añada un nuevo Knowledge Pack y, cuando sea necesario, un adaptador de hechos; no un motor nuevo.
+
 ## Uso rápido: arrastrar la solicitud
 
 ```bash
