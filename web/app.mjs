@@ -34,7 +34,7 @@ const todayLocal = () => {
   return local.toISOString().slice(0, 10);
 };
 const [knowledge, sourceKnowledgeRaw] = await Promise.all([
-  loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json'),
+  loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.1.0.json'),
   fetch('/knowledge/source/concursal/kb-concurso-persona-fisica-1.0.0.json', { cache: 'no-store' }).then((r) => {
     if (!r.ok) throw new Error(`No se ha podido cargar el Knowledge de persona física (${r.status}).`);
     return r.json();
