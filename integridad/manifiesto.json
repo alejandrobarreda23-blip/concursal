@@ -31,8 +31,9 @@
     "test/golden/04-garantia-real-y-publico.txt": "704a7b517be7ec7e281a8568296478f34cd4256634205f46b9f231a0dd4857f4",
     "test/golden/10-declaracion-desde-solicitud.json": "899c3b5da716b9598329af7823a64a5f7f5696725d4f631fa6db5455309cf4b9",
     "test/golden/10-declaracion-desde-solicitud.txt": "45dfe8878dc20255ecaa1601ae08149df59c5d89cc5ed4d037206a5091195c02",
-    "web/app.mjs": "2a4b646993c3b037dc3e056afc8aa7ac648525843f661e7d1d29b26066237b78",
-    "web/estilos.css": "eadcc9d46d596cd3c1628fb38861565983457fc0d3d6e0cadc25f2f111f7fbd9",
-    "web/index.html": "bccfa4698c9a169f6a51e8bb56b70f5c4e0ee31094ac06238f839ec922885d57"
+    "web/app.mjs": "7bea998c10a10f464520f3e6758920ee606646be54c8eaf6407c0d81b15a23e4",
+    "web/estilos.css": "a25442748c46ddd38fe54618ac7df3fd2f95f0ae98f1f0a47625793e0ab87313",
+    "web/index.html": "8ba7d56fa266009325f45bbbf5e1e5d5ad092026c3e3695309b0b99ab7dd9711",
+    "web/case-store.mjs": "f36adfeb88f47f23a9a1ab14042a73320ad2a400ab79a2490a6114d6cb3619e3"
   }
 }
