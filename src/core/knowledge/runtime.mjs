@@ -37,7 +37,7 @@ export function createKnowledgeRuntime(compiled) {
           seccion: item.seccion,
           variantes: item.variantes,
           ...(item.solo_si ? { solo_si: item.solo_si } : {}),
-          ...(item.titulo ? { titulo: item.titulo } : {}),
+          ...(item.block_title ? { titulo: item.block_title } : {}),
           texto: item.texto,
           ...(item.tabla ? { tabla: item.tabla } : {}),
           verificar: item.verificar ?? null
