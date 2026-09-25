@@ -370,7 +370,10 @@
           "total_exonerado",
           "total_no_exonerado",
           "detalle_credito_publico"
-        ]
+        ],
+        "extra": {
+          "fuente_estructura": "Estructura observada en autos publicados en el CENDOJ de la Sección de lo Mercantil del Tribunal de Instancia de Girona (2026): antecedentes (declaración sin masa sin auto complementario del art. 37 quinquies; solicitud de EPI del art. 501 sin oposición) y parte dispositiva (conclusión y archivo, créditos exonerados, créditos que en ningún caso se exoneran)."
+        }
       }
     }
   },
@@ -1424,7 +1427,8 @@
       "titulo_bloque": "Solicitud de concurso",
       "texto": "Con fecha {{fecha_solicitud}}, la representación procesal de {{deudor}} presentó solicitud de declaración de concurso voluntario sin masa, exponiendo que el deudor se encuentra en situación de insolvencia {{insolvencia}} y que concurre un supuesto de insuficiencia de masa activa.",
       "verificar": null,
-      "block_title": "Solicitud de concurso"
+      "block_title": "Solicitud de concurso",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-02",
@@ -1461,7 +1465,8 @@
       "titulo_bloque": "Solicitud de concurso",
       "texto": "Con fecha {{fecha_solicitud}}, {{deudor}} presentó solicitud de declaración de concurso voluntario sin masa, exponiendo encontrarse en situación de insolvencia {{insolvencia}} y que concurre un supuesto de insuficiencia de masa activa.",
       "verificar": null,
-      "block_title": "Solicitud de concurso"
+      "block_title": "Solicitud de concurso",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-03",
@@ -1497,7 +1502,8 @@
       "titulo_bloque": "Situación patrimonial y pasivo declarado",
       "texto": "La solicitud cifra el pasivo en {{total_pasivo}}, distribuido entre {{numero_acreedores}} acreedores, y sostiene que el patrimonio disponible no permite la satisfacción regular de las obligaciones exigibles ni justifica la apertura de una liquidación ordinaria de masa activa.",
       "verificar": null,
-      "block_title": "Situación patrimonial y pasivo declarado"
+      "block_title": "Situación patrimonial y pasivo declarado",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-04",
@@ -1533,7 +1539,8 @@
       "titulo_bloque": "Relación de acreedores",
       "texto": "La relación incorporada al expediente identifica los acreedores, el origen de cada crédito y su importe. Estos datos se recogen de forma sistematizada en la parte dispositiva de esta resolución.",
       "verificar": null,
-      "block_title": "Relación de acreedores"
+      "block_title": "Relación de acreedores",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-05",
@@ -1569,7 +1576,8 @@
       "titulo_bloque": "Competencia objetiva y territorial",
       "texto": "Conforme al artículo 44 TRLC, corresponde a los jueces de lo mercantil declarar y tramitar el concurso de acreedores. La competencia territorial se determina por el centro de los intereses principales del deudor en los términos del artículo 45 TRLC. Examinados los datos del expediente y verificada expresamente la competencia por este órgano judicial, procede conocer de la solicitud.",
       "verificar": null,
-      "block_title": "Competencia objetiva y territorial"
+      "block_title": "Competencia objetiva y territorial",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-06",
@@ -1605,7 +1613,8 @@
       "titulo_bloque": "Legitimación y carácter voluntario del concurso",
       "texto": "El deudor está legitimado para solicitar su propia declaración de concurso conforme al artículo 3 TRLC. Al haber sido instado por el propio deudor, el concurso tiene carácter voluntario.",
       "verificar": null,
-      "block_title": "Legitimación y carácter voluntario del concurso"
+      "block_title": "Legitimación y carácter voluntario del concurso",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-07",
@@ -1641,7 +1650,8 @@
       "titulo_bloque": "Presupuesto objetivo: insolvencia",
       "texto": "El artículo 2 TRLC exige la existencia de un estado de insolvencia y distingue entre insolvencia actual e inminente. En este expediente se ha apreciado judicialmente la insolvencia {{insolvencia}}, atendidos los datos económicos consignados en la solicitud y la imposibilidad de atender regularmente las obligaciones exigibles.",
       "verificar": null,
-      "block_title": "Presupuesto objetivo: insolvencia"
+      "block_title": "Presupuesto objetivo: insolvencia",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-08",
@@ -1677,7 +1687,8 @@
       "titulo_bloque": "Concurso sin masa",
       "texto": "El artículo 37 bis TRLC contempla, por este orden, los supuestos de inexistencia de bienes y derechos legalmente embargables, coste de realización manifiestamente desproporcionado, valor de los bienes libres de cargas inferior al coste previsible del procedimiento y cargas superiores al valor de mercado de los bienes afectados. En el presente caso se aprecia expresamente la concurrencia del supuesto del artículo 37 bis.{{supuesto_letra}}) TRLC: {{supuesto_texto}}. Procede, por ello, la declaración del concurso sin masa.",
       "verificar": null,
-      "block_title": "Concurso sin masa"
+      "block_title": "Concurso sin masa",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-09",
@@ -1713,7 +1724,8 @@
       "titulo_bloque": "Especialidades de la declaración",
       "texto": "El artículo 37 ter TRLC dispone que, cuando de la solicitud y de la documentación resulte la concurrencia de alguno de los supuestos del artículo 37 bis, se dicte auto declarando el concurso con expresión del pasivo, sin más pronunciamientos. La resolución debe remitirse telemáticamente al Boletín Oficial del Estado para su publicación en el suplemento del tablón edictal judicial único y publicarse en el Registro público concursal, con llamamiento a los acreedores que representen al menos el cinco por ciento del pasivo para que, dentro de los quince días siguientes al de la publicación del edicto, puedan solicitar el nombramiento de administrador concursal a fin de que emita el informe legalmente previsto.",
       "verificar": null,
-      "block_title": "Especialidades de la declaración"
+      "block_title": "Especialidades de la declaración",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-10",
@@ -1750,7 +1762,8 @@
       "titulo_bloque": "Exoneración del pasivo insatisfecho",
       "texto": "El deudor ha manifestado su intención de obtener la exoneración del pasivo insatisfecho. Esta resolución se limita a la declaración del concurso sin masa y no contiene un pronunciamiento anticipado sobre la procedencia de la exoneración, que deberá resolverse en el momento procesal correspondiente y con arreglo a sus propios presupuestos.",
       "verificar": null,
-      "block_title": "Exoneración del pasivo insatisfecho"
+      "block_title": "Exoneración del pasivo insatisfecho",
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-11",
@@ -1785,7 +1798,8 @@
       ],
       "texto": "DECLARO a {{deudor}}, con NIF {{nif}} y domicilio en {{domicilio}}, en situación de concurso voluntario sin masa, por concurrir el supuesto previsto en el artículo 37 bis.{{supuesto_letra}}) TRLC.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-12",
@@ -1821,7 +1835,8 @@
       "texto": "HAGO CONSTAR que el pasivo que resulta de la documentación actualmente disponible asciende a {{total_pasivo}}, conforme a la siguiente relación de acreedores:",
       "tabla": "pasivo",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-13",
@@ -1856,7 +1871,8 @@
       ],
       "texto": "ACUERDO la remisión telemática de esta resolución al Boletín Oficial del Estado para su publicación en el suplemento del tablón edictal judicial único y su publicación en el Registro público concursal.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-14",
@@ -1891,7 +1907,8 @@
       ],
       "texto": "HAGO SABER a los acreedores que quienes representen, individual o conjuntamente, al menos el cinco por ciento del pasivo podrán, dentro de los quince días siguientes al de la publicación del edicto, solicitar el nombramiento de administrador concursal para la emisión del informe previsto en el artículo 37 ter TRLC.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": false
     },
     {
       "id": "B-DECLARACION-15",
@@ -1926,7 +1943,8 @@
       ],
       "texto": "Modo de impugnación: contra esta resolución cabe recurso de reposición ante este tribunal, de conformidad con los artículos 545 y 546 TRLC.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": false
     },
     {
       "id": "B-CONCLUSION-01",
@@ -1961,7 +1979,8 @@
       ],
       "texto": "Por auto de {{fecha_declaracion}} se declaró el concurso sin masa de {{deudor}}, de conformidad con los artículos 37 bis y siguientes del texto refundido de la Ley Concursal (TRLC). Ningún acreedor legitimado ha solicitado el nombramiento de administración concursal y no se ha dictado el auto complementario al que se refiere el artículo 37 quinquies TRLC.",
       "verificar": "Remisión a los arts. 37 bis y 37 quinquies TRLC tal como aparece en los autos de Girona.",
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-02",
@@ -1995,7 +2014,8 @@
       ],
       "texto": "El {{fecha_solicitud}}, el deudor solicitó la exoneración del pasivo insatisfecho, de la que se dio traslado a los acreedores sin que ninguno haya formulado oposición.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-03",
@@ -2031,7 +2051,8 @@
       "titulo_bloque": "Conclusión del concurso sin masa",
       "texto": "Declarado el concurso sin masa y transcurrido el plazo legal sin que los acreedores legitimados hayan instado el nombramiento de administración concursal, procede acordar la conclusión del procedimiento y el archivo de las actuaciones, conforme a los artículos 37 bis y siguientes TRLC.",
       "verificar": "Precepto concreto que el magistrado prefiera citar para la conclusión.",
-      "block_title": "Conclusión del concurso sin masa"
+      "block_title": "Conclusión del concurso sin masa",
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-04",
@@ -2067,7 +2088,8 @@
       "titulo_bloque": "Extinción de la persona jurídica",
       "texto": "Tratándose de una persona jurídica, la conclusión del concurso comporta su extinción y el cierre de su hoja de inscripción en los registros públicos que corresponda (art. 485 TRLC).",
       "verificar": "Art. 485 TRLC.",
-      "block_title": "Extinción de la persona jurídica"
+      "block_title": "Extinción de la persona jurídica",
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-05",
@@ -2102,7 +2124,8 @@
       "titulo_bloque": "Exoneración del pasivo insatisfecho",
       "texto": "El deudor es persona natural y ha solicitado la exoneración del pasivo insatisfecho. Este tribunal no aprecia ninguna de las circunstancias que, conforme al artículo 487 TRLC, impiden considerar al deudor de buena fe a estos efectos, y ningún acreedor legitimado se ha opuesto a la solicitud. Procede, en consecuencia, conceder la exoneración (art. 501 TRLC).",
       "verificar": "Cita del art. 501 TRLC como en los autos de Girona.",
-      "block_title": "Exoneración del pasivo insatisfecho"
+      "block_title": "Exoneración del pasivo insatisfecho",
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-06",
@@ -2137,7 +2160,8 @@
       "titulo_bloque": "Extensión de la exoneración",
       "texto": "La exoneración alcanza a las deudas insatisfechas, con las excepciones del artículo 489.1 TRLC. El pasivo relacionado asciende a {{total_pasivo}}; se exoneran {{total_exonerado}} y quedan excluidos de la exoneración {{total_no_exonerado}}, conforme al detalle de la parte dispositiva.",
       "verificar": null,
-      "block_title": "Extensión de la exoneración"
+      "block_title": "Extensión de la exoneración",
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-07",
@@ -2173,7 +2197,8 @@
       "titulo_bloque": "Crédito público",
       "texto": "Las deudas cuya gestión recaudatoria corresponde a la Agencia Estatal de Administración Tributaria y las deudas con la Seguridad Social solo pueden exonerarse, en cada caso, hasta un máximo de 10.000 euros por deudor: íntegramente los primeros 5.000 euros y en un 50 % a partir de esa cifra (art. 489.1.5.º TRLC). {{detalle_credito_publico}}",
       "verificar": "Límites cuantitativos vigentes del art. 489.1.5.º TRLC.",
-      "block_title": "Crédito público"
+      "block_title": "Crédito público",
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-08",
@@ -2208,7 +2233,8 @@
       "titulo_bloque": "Efectos",
       "texto": "Los acreedores de los créditos exonerados no podrán ejercitar acción alguna frente al deudor para su cobro, sin perjuicio de sus acciones frente a los obligados solidarios, fiadores, avalistas, aseguradores y demás obligados legal o contractualmente al pago de la deuda exonerada. La exoneración podrá revocarse en los supuestos y plazos legalmente previstos (arts. 490 y siguientes TRLC).",
       "verificar": "Artículos concretos sobre efectos y revocación que el magistrado prefiera citar.",
-      "block_title": "Efectos"
+      "block_title": "Efectos",
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-09",
@@ -2243,7 +2269,8 @@
       ],
       "texto": "Declaro concluso el concurso sin masa de {{deudor}} y acuerdo el archivo de las actuaciones.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-10",
@@ -2278,7 +2305,8 @@
       "solo_si": "persona_juridica",
       "texto": "Declaro la extinción de {{deudor}} y acuerdo el cierre de su hoja de inscripción en los registros públicos correspondientes, a cuyo efecto se librarán los mandamientos oportunos.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-11",
@@ -2313,7 +2341,8 @@
       "texto": "Concedo a {{deudor}} la exoneración del pasivo insatisfecho respecto de los créditos siguientes, por los importes que se indican:",
       "tabla": "exonerados",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-12",
@@ -2349,7 +2378,8 @@
       "texto": "Quedan excluidos de la exoneración los importes siguientes:",
       "tabla": "no_exonerados",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-13",
@@ -2383,7 +2413,8 @@
       ],
       "texto": "En ningún caso quedan exoneradas las deudas enumeradas en el artículo 489.1 TRLC que pudieran existir, aunque no figuren en la relación anterior.",
       "verificar": "Los autos de Girona transcriben la lista completa del art. 489.1; decidir si se transcribe o se remite.",
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-14",
@@ -2418,7 +2449,8 @@
       ],
       "texto": "Publíquese esta resolución en el Registro público concursal y líbrense las comunicaciones y mandamientos que procedan.",
       "verificar": null,
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     },
     {
       "id": "B-CONCLUSION-15",
@@ -2453,7 +2485,8 @@
       ],
       "texto": "Contra esta resolución cabe recurso de reposición ante este tribunal en el plazo de cinco días (art. 546 TRLC).",
       "verificar": "Régimen de recursos: confirmar si el magistrado prefiere otro pie de recurso para esta resolución.",
-      "block_title": null
+      "block_title": null,
+      "legacy_has_verificar": true
     }
   ],
   "antipatrones": [
