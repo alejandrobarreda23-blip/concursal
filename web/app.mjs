@@ -26,6 +26,11 @@ const euros = (n) => (n == null || n === '' ? '—' : Number(n).toLocaleString('
 const CLAVE_JUZGADO = 'csm.datos_juzgado.v1';
 const CLAVE_EXTRACTOR_IA = 'csm.extractor_ia.v1';
 const SAVE_DELAY = 350;
+const todayLocal = () => {
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+};
 const [knowledge, sourceKnowledgeRaw] = await Promise.all([
   loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json'),
   fetch('/knowledge/source/concursal/kb-concurso-persona-fisica-1.0.0.json', { cache: 'no-store' }).then((r) => {
@@ -603,6 +608,7 @@ async function abrirCaso(id) {
   estado.currentCase = caso;
   estado.lectura = plain(caso.lectura);
   estado.expediente = plain(caso.expediente);
+  if (estado.expediente && !estado.expediente.fecha_resolucion) estado.expediente.fecha_resolucion = todayLocal();
   estado.conclusion = plain(caso.conclusion);
   estado.resultadoDeclaracion = plain(caso.resultadoDeclaracion);
   estado.resultadoConclusion = plain(caso.resultadoConclusion);
@@ -856,29 +862,49 @@ function pintarSuma() {
 
 // ---------- datos del juzgado ----------
 function cargarJuzgado() {
+  const base = plain(DATOS_JUZGADO_VACIOS);
   try {
     const g = JSON.parse(localStorage.getItem(CLAVE_JUZGADO) || 'null');
-    if (g) return { ...plain(DATOS_JUZGADO_VACIOS), ...g, procedimiento: { numero: '', nig: '' }, fecha_resolucion: '', numero_resolucion: '' };
+    if (g) return {
+      ...base,
+      ...g,
+      organo: { ...base.organo, ...(g.organo || {}) },
+      juez: { ...base.juez, ...(g.juez || {}) },
+      procedimiento: { numero: '', nig: '' },
+      fecha_resolucion: todayLocal(),
+      numero_resolucion: ''
+    };
   } catch {}
-  return plain(DATOS_JUZGADO_VACIOS);
+  return { ...base, fecha_resolucion: todayLocal() };
 }
 function guardarJuzgado() {
   try { const e = estado.expediente; localStorage.setItem(CLAVE_JUZGADO, JSON.stringify({ organo: e.organo, juez: e.juez })); } catch {}
 }
 function pintarJuzgado() {
-  $('juzgado').innerHTML = [
+  if (!estado.expediente.fecha_resolucion) estado.expediente.fecha_resolucion = todayLocal();
+  const principal = campo({ etiqueta: 'N.º de procedimiento (opcional)', ruta: 'procedimiento.numero', fuente: false });
+  const avanzados = [
+    campo({ etiqueta: 'NIG (opcional)', ruta: 'procedimiento.nig', fuente: false }),
     campo({ etiqueta: 'Tribunal', ruta: 'organo.tribunal', fuente: false }),
     campo({ etiqueta: 'Sección', ruta: 'organo.seccion', fuente: false }),
     campo({ etiqueta: 'Plaza n.º', ruta: 'organo.plaza', tipo: 'entero', fuente: false }),
     campo({ etiqueta: 'Denominación histórica (opcional)', ruta: 'organo.denominacion_historica', fuente: false }),
     campo({ etiqueta: 'Localidad', ruta: 'organo.localidad', fuente: false }),
-    campo({ etiqueta: 'N.º de procedimiento', ruta: 'procedimiento.numero', fuente: false }),
-    campo({ etiqueta: 'NIG', ruta: 'procedimiento.nig', fuente: false }),
-    campo({ etiqueta: 'Juez/a', ruta: 'juez.nombre', fuente: false }),
+    campo({ etiqueta: 'Juez/a (opcional en borrador)', ruta: 'juez.nombre', fuente: false }),
     campo({ etiqueta: 'Cargo', ruta: 'juez.cargo', opciones: [['Magistrado', 'Magistrado'], ['Magistrada', 'Magistrada'], ['Juez', 'Juez'], ['Jueza', 'Jueza']], fuente: false }),
     campo({ etiqueta: 'Fecha del auto', ruta: 'fecha_resolucion', tipo: 'fecha', fuente: false }),
     campo({ etiqueta: 'N.º de resolución (opcional)', ruta: 'numero_resolucion', fuente: false })
   ].join('');
+  $('juzgado').innerHTML = `
+    <div class="minimal-court-fields">
+      ${principal}
+      <div class="auto-date-chip"><span>Fecha de resolución</span><b>${esc(estado.expediente.fecha_resolucion)}</b><small>se completa automáticamente con la fecha local del navegador</small></div>
+    </div>
+    <details class="advanced-court-fields">
+      <summary>Datos avanzados de cabecera</summary>
+      <p>Solo son necesarios si quieres que el borrador salga completamente identificado. Los datos del órgano y del juez se recuerdan en este navegador.</p>
+      <div class="rejilla">${avanzados}</div>
+    </details>`;
 }
 
 // ---------- decisión y resoluciones ----------
