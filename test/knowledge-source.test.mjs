@@ -5,6 +5,7 @@ import { adaptPersonaFisicaKnowledgeSource, personaFisicaKnowledgeSummary } from
 import { validateKnowledgePack } from '../src/core/knowledge/contracts.mjs';
 import { prepareKnowledgeRuntime } from '../src/core/knowledge/runtime.mjs';
 import { createKnowledgeRegistry } from '../src/core/knowledge/registry.mjs';
+import { evaluateKnowledgeModule } from '../src/core/knowledge/rule-engine.mjs';
 import { loadKnowledgeRuntime } from '../src/core/knowledge/node-loader.mjs';
 
 const source = JSON.parse(readFileSync(new URL('../knowledge/source/concursal/kb-concurso-persona-fisica-1.0.0.json', import.meta.url), 'utf8'));
@@ -58,4 +59,42 @@ test('knowledge registry: el pack nuevo amplía materia sin desplazar la paridad
   assert.equal(registry.primary('declaracion_sin_masa').pack_id, 'KP-CONCURSAL-CSM');
   assert.equal(registry.primary('epi_general').pack_id, 'KP-CONCURSAL-PERSONA-FISICA');
   assert.equal(registry.runtimes.length, 2);
+});
+
+
+test('knowledge rules: el Core ejecuta JSON Logic sin conocer derecho concursal', () => {
+  const runtime = prepareKnowledgeRuntime(adaptPersonaFisicaKnowledgeSource(source));
+  const expediente = {
+    deudor: {
+      nif: '12345678Z',
+      es_empresario: true,
+      num_trabajadores_medio_anio_anterior: 2,
+      volumen_negocio_anual: 120000,
+      coi_provincia: 'Girona',
+      insolvencia_tipo: 'actual'
+    },
+    solicitante: { tipo: 'deudor', procurador: true, abogado: true, poder_especial_concurso: true, poder_forma: 'notarial', modelo_oficial: true },
+    documentos: { memoria: true, memoria_datos_conyuge: true, inventario: true, inventario_con_valoracion: true, relacion_acreedores: true, relacion_acreedores_completa: true, datos_trabajadores: true },
+    procedimiento: { organo_provincia: 'Girona', organo_es_seccion_mercantil: true },
+    pasivo: { total: 100000 },
+    antecedentes: {},
+    calc: {}
+  };
+  const result = evaluateKnowledgeModule(runtime, 'solicitud_declaracion', expediente);
+  assert.equal(result.rules_evaluated, 15);
+  assert.ok(result.triggered.some((item) => item.source_id === 'SOL_002'));
+  assert.ok(result.blocking.some((item) => item.source_id === 'SOL_002' && item.severity === 'derivacion'));
+});
+
+test('knowledge rules: las reglas valorativas salen como cuestión judicial y no como automática', () => {
+  const runtime = prepareKnowledgeRuntime(adaptPersonaFisicaKnowledgeSource(source));
+  const result = evaluateKnowledgeModule(runtime, 'epi_general', {
+    antecedentes: { indicios_endeudamiento_temerario: true },
+    epi: { oposiciones: [] },
+    pasivo: { total: 1 },
+    procedimiento: { fase_actual: 'F_EPI_LIQ_TRASLADO' }
+  });
+  const item = result.judicial_questions.find((row) => row.source_id === 'EPI_017');
+  assert.ok(item);
+  assert.equal(item.requires_human_decision, true);
 });
