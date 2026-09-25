@@ -7,8 +7,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# La página no envía nada a ningún servidor: se bloquean conexiones externas
-# y la indexación por buscadores.
+[functions]
+  directory = "netlify/functions"
+
+# Por defecto todo sigue local. Si el usuario activa la extracción IA, el navegador envía únicamente\n# el texto extraído del PDF a una Netlify Function same-origin; la clave del proveedor nunca llega al cliente.\n# Se mantiene bloqueada cualquier conexión directa del navegador a terceros y la indexación por buscadores.
 [[headers]]
   for = "/*"
   [headers.values]
