@@ -19,6 +19,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Golden hash report
+        run: node scripts/report-golden.mjs
       - name: Regression tests
         run: node --test test/*.test.mjs
       - name: Integrity + full test
