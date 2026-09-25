@@ -24,7 +24,7 @@ export function validarExpedienteDeclaracion(exp) {
   for (const k of ['tribunal', 'seccion', 'localidad']) if (!text(exp.organo?.[k])) push(`organo.${k}`, 'falta.');
   if (!Number.isInteger(exp.organo?.plaza) || exp.organo.plaza < 1) push('organo.plaza', 'debe ser un entero ≥ 1.');
   for (const k of ['numero', 'nig']) if (!text(exp.procedimiento?.[k])) push(`procedimiento.${k}`, 'falta.');
-  if (!text(exp.juez?.nombre)) push('juez.nombre', 'falta.');
+  // El nombre del juez puede completarse después: el borrador deja un hueco visible.
   if (!['Magistrado', 'Magistrada', 'Juez', 'Jueza'].includes(text(exp.juez?.cargo))) push('juez.cargo', 'debe ser Magistrado, Magistrada, Juez o Jueza.');
   if (!fechaValida(exp.fecha_resolucion)) push('fecha_resolucion', 'fecha ISO (AAAA-MM-DD) inválida.');
   for (const k of ['nombre', 'nif', 'domicilio']) if (!text(exp.deudor?.[k])) push(`deudor.${k}`, 'falta.');
@@ -61,9 +61,8 @@ export function determinarFaseDeclaracion(exp) {
   if (s.plan_pagos) fuera.push('Se pide exoneración con plan de pagos: no es el cauce del concurso sin masa simple.');
   if (fuera.length) return { estado: 'fuera_de_alcance', variante: null, motivos: fuera };
 
-  const faltan = DOCUMENTOS_ART_7.filter((d) => s.documentos?.[d] !== true);
-  if (faltan.length) return { estado: 'pendiente_tramite', variante: 'declaracion_sin_masa', motivos: [`Faltan documentos del art. 7 TRLC: ${faltan.join(', ').replace(/_/g, ' ')}. Procede requerir la subsanación antes de declarar el concurso.`] };
-
+  // Las carencias documentales no impiden preparar un borrador: se señalan como advertencia.
+  // La decisión jurídica sigue siendo humana y sí bloquea la redacción.
   const d = exp.decision_judicial;
   const pend = [];
   if (!obj(d)) pend.push('Falta decision_judicial.');
@@ -77,6 +76,18 @@ export function determinarFaseDeclaracion(exp) {
   return { estado: 'listo', variante: 'declaracion_sin_masa', motivos: [] };
 }
 
+function advertenciasBorradorDeclaracion(exp) {
+  const avisos = [];
+  const faltan = DOCUMENTOS_ART_7.filter((d) => exp.solicitud?.documentos?.[d] !== true);
+  if (faltan.length) {
+    avisos.push(`No consta como acompañada toda la documentación del art. 7 TRLC: ${faltan.join(', ').replace(/_/g, ' ')}. El borrador se genera para revisión y deberá completarse o adaptarse antes de la firma.`);
+  }
+  if (!text(exp.juez?.nombre)) {
+    avisos.push('Falta el nombre del juez/a: se deja un espacio en blanco en el borrador.');
+  }
+  return avisos;
+}
+
 function filasPasivo(creditos) {
   const filas = arr(creditos).map((c) => {
     const importe = aCentimos(c.importe);
@@ -88,6 +99,7 @@ function filasPasivo(creditos) {
 
 export function construirIRDeclaracion(exp, pack) {
   const { filas, totales } = filasPasivo(exp.creditos);
+  const advertencias = advertenciasBorradorDeclaracion(exp);
   const ctx = { pide_epi: exp.solicitud.pide_epi === true && exp.deudor.tipo === 'persona_natural' };
   const supuesto = String(exp.decision_judicial.supuesto_37_bis);
   const ratificacion = estadoRatificacion(pack);
@@ -113,6 +125,7 @@ export function construirIRDeclaracion(exp, pack) {
     bloques: arr(pack.bloques)
       .filter((b) => b.variantes.includes('declaracion_sin_masa') && (!b.solo_si || ctx[b.solo_si]))
       .map((b) => ({ id: b.id, seccion: b.seccion, titulo: b.titulo ?? null, texto: b.texto, tabla: b.tabla ?? null })),
+    ...(advertencias.length ? { advertencias_borrador: advertencias } : {}),
     procedencia: {
       motor: MOTOR_VERSION,
       pack_id: pack.pack_id,
@@ -137,7 +150,12 @@ export function generarAutoDeclaracion(expediente, { pack }) {
   const ir = construirIRDeclaracion(expediente, pack);
   let documento, texto;
   try { documento = redactar(ir); texto = aTextoPlano(documento); } catch (err) { return { estado: 'error_redaccion', errores: [err.message], ir }; }
-  const controles = controlesCalidad(ir, documento, texto);
+  const controlesBase = controlesCalidad(ir, documento, texto);
+  const avisosBorrador = advertenciasBorradorDeclaracion(expediente);
+  const controles = Object.freeze({
+    ...controlesBase,
+    avisos: [...new Set([...(controlesBase.avisos || []), ...avisosBorrador])]
+  });
   if (!controles.ok) return { estado: 'bloqueado_por_calidad', controles, ir };
   return { estado: ir.procedencia.bloques_ratificados ? 'borrador' : 'borrador_no_ratificado', variante: ir.variante, ir, documento, texto, controles };
 }
