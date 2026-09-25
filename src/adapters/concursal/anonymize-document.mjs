@@ -53,13 +53,25 @@ function maskLabelledPeople(text, vault) {
   let out = text;
   out = vault.replaceRegex(
     out,
-    /\b(?:D\.?ª?|Don|Doña|Dona|Sr\.?|Sra\.?)\s+([A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]+(?:\s+(?:de|del|la|las|los|y)?\s*[A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]+){1,5})/g,
+    /\b(?:D\.?ª?|Don|Doña|Dona|Sr\.?|Sra\.?)\s+([A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]{2,}(?:\s+(?:de|del|la|las|los|y)?\s*[A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]{2,}){1,5})/gi,
     'PERSONA',
     (groups) => groups[1]
   );
   out = vault.replaceRegex(
     out,
-    /\b(?:procurador(?:a)?|abogad[oa]|letrad[oa]|c[oó]nyuge|pareja)\s+(?:D\.?ª?|Don|Doña|Dona|Sr\.?|Sra\.?)?\s*([A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]+(?:\s+(?:de|del|la|las|los|y)?\s*[A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]+){1,5})/g,
+    /\b((?:nombre\s+y\s+apellidos|nombre\s+completo)\s*:\s*)([^\n|;]{3,90}?)(?=(?:\s+NIF\b|\s+DNI\b|\s+NIE\b|\||;|$))/gim,
+    'PERSONA',
+    (groups) => groups[2]
+  );
+  out = vault.replaceRegex(
+    out,
+    /\b(?:representaci[oó]n\s+de|en\s+nombre\s+de|firmado\s+por)\s+(?:D\.?ª?|Don|Doña|Dona|Sr\.?|Sra\.?)?\s*([A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]{2,}(?:\s+(?:de|del|la|las|los|y)?\s*[A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]{2,}){1,5})/gi,
+    'PERSONA',
+    (groups) => groups[1]
+  );
+  out = vault.replaceRegex(
+    out,
+    /\b(?:procurador(?:a)?|abogad[oa]|letrad[oa]|c[oó]nyuge|pareja)\s+(?:D\.?ª?|Don|Doña|Dona|Sr\.?|Sra\.?)?\s*([A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]{2,}(?:\s+(?:de|del|la|las|los|y)?\s*[A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñü'’.-]{2,}){1,5})/gi,
     'PERSONA',
     (groups) => groups[1]
   );
@@ -67,7 +79,7 @@ function maskLabelledPeople(text, vault) {
 }
 
 function maskHighRecallProperNames(text, vault) {
-  const re = /\b([A-ZÁÉÍÓÚÑÜ][a-záéíóúñüàèòç'’.-]{2,}(?:\s+(?:(?:de|del|la|las|los|y)\s+)?[A-ZÁÉÍÓÚÑÜ][a-záéíóúñüàèòç'’.-]{2,}){1,4})\b/g;
+  const re = /\b([A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñüàèòç'’.-]{2,}(?:\s+(?:(?:de|del|la|las|los|y)\s+)?[A-ZÁÉÍÓÚÑÜ][A-Za-zÁÉÍÓÚÑÜáéíóúñüàèòç'’.-]{2,}){1,4})\b/g;
   return String(text).replace(re, (whole, candidate) => {
     if (PERSONA_EXCLUSIONS.test(candidate) || ENTITY_MARKERS.test(candidate)) return whole;
     return whole.replace(candidate, vault.tokenFor(candidate, 'NOMBRE_PROPIO'));
