@@ -30,9 +30,16 @@ export function buildSafeCaseSnapshot(expediente = {}) {
     creditos: arr(expediente.creditos).map((c, index) => ({
       id: c.id || `C${index + 1}`,
       clase: c.clase || null,
+      rango_concursal: c.rango_concursal || null,
+      fecha_origen: c.fecha_origen || null,
       importe: c.importe ?? null,
       valor_garantia: c.valor_garantia ?? null
     })),
+    antecedentes: {
+      incumplimiento_colaboracion: expediente.antecedentes?.incumplimiento_colaboracion === true,
+      indicios_endeudamiento_temerario: expediente.antecedentes?.indicios_endeudamiento_temerario === true,
+      informacion_falsa_enganosa: expediente.antecedentes?.informacion_falsa_enganosa === true
+    },
     decisiones_ya_confirmadas: {
       competencia_verificada: decision.competencia_verificada === true,
       insolvencia_apreciada: decision.insolvencia_apreciada === true,
