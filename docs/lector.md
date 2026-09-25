@@ -17,10 +17,10 @@
 | Insolvencia | «insolvencia actual/inminente» o la casilla marcada del formulario |
 | EPI / plan de pagos | «exoneración del pasivo insatisfecho», «plan de pagos» |
 | Formulario Anexo I | Encabezado del formulario de los Mercantiles de Barcelona (Acuerdos de diciembre de 2023) |
-| Deudor | «Nombre y apellidos:» (formulario) o «en nombre y representación de DON/DOÑA …» (escrito); DNI/NIE/NIF; domicilio |
+| Deudor | «Nombre y apellidos:» (formulario), «en nombre y representación de DON/DOÑA …» o compareciente «D./DON/DOÑA …, mayor de edad…»; DNI/NIE/NIF con o sin guion; domicilio, incluido «domicilio a efectos de … en …» |
 | Partes | «…, Procurador/a de los Tribunales», «dirección letrada de …» |
-| Importes | «importe global de las deudas», «valor … de los bienes y derechos» |
-| Acreedores | Desde «Relación de acreedores» / «IV. Acreedores…» hasta el siguiente apartado. En cada fila: último importe, NIF, garantía, acreedor y concepto |
+| Importes | «importe global de las deudas», total de la relación de acreedores; «valor … de los bienes y derechos» y, cuando el propio escrito afirma que no hay otro activo relevante, saldo bancario único |
+| Acreedores | Desde «Relación de acreedores», «Relación simplificada de acreedores» o «IV. Acreedores…» hasta el siguiente apartado, también si éste empieza por «Cuarto.», «Quinto.», etc. En cada fila: último importe, NIF, garantía, acreedor y concepto; admite «1.750,21 €» y «18.000 EUR» |
 | Clase de crédito | AEAT, TGSS, ayuntamientos y otros públicos, hipoteca o garantía real, alimentos, multas; el resto, ordinario |
 
 ## Alertas
