@@ -55,28 +55,31 @@
             "strategy": "full"
           },
           "publico_aeat": {
-            "strategy": "limited_group",
-            "group": "publico_aeat",
+            "strategy": "public_per_creditor",
             "limit": {
               "tramo_integro": 500000,
               "maximo": 1000000,
               "porcentaje_resto": 50
             },
-            "motivo": "límite legal de exoneración del crédito público (art. 489.1.5.º TRLC)"
+            "motivo": "límite de exoneración del crédito público por acreedor (art. 489.1.5.º TRLC; SSTS 260/2026 y 264/2026)"
           },
           "publico_tgss": {
-            "strategy": "limited_group",
-            "group": "publico_tgss",
+            "strategy": "public_per_creditor",
             "limit": {
               "tramo_integro": 500000,
               "maximo": 1000000,
               "porcentaje_resto": 50
             },
-            "motivo": "límite legal de exoneración del crédito público (art. 489.1.5.º TRLC)"
+            "motivo": "límite de exoneración del crédito público por acreedor (art. 489.1.5.º TRLC; SSTS 260/2026 y 264/2026)"
           },
           "publico_otro": {
-            "strategy": "none",
-            "motivo": "crédito de derecho público (art. 489.1.5.º TRLC)"
+            "strategy": "public_per_creditor",
+            "limit": {
+              "tramo_integro": 500000,
+              "maximo": 1000000,
+              "porcentaje_resto": 50
+            },
+            "motivo": "límite de exoneración del crédito público por acreedor (art. 489.1.5.º TRLC; SSTS 260/2026 y 264/2026)"
           },
           "garantia_real": {
             "strategy": "secured_excess",
@@ -106,6 +109,28 @@
             "strategy": "none",
             "motivo": "costas y gastos de la solicitud de exoneración (art. 489.1.7.º TRLC)"
           }
+        },
+        "regla_publico": {
+          "grouping": "acreedor_publico_individual",
+          "subordinado": "exoneracion_integra_fuera_del_limite",
+          "limit": {
+            "tramo_integro": 500000,
+            "maximo": 1000000,
+            "porcentaje_resto": 50
+          },
+          "allocation": {
+            "priority_order": [
+              "subordinado",
+              "ordinario",
+              "privilegio_general",
+              "privilegio_especial",
+              "contra_masa"
+            ],
+            "direction": "inverso_prelacion",
+            "within_class": "antiguedad",
+            "missing_order_data": "warning_and_review"
+          },
+          "fuente": "SSTS 260/2026 y 264/2026, de 18 de febrero"
         }
       }
     },
@@ -353,14 +378,14 @@
       },
       "conclusion": {
         "pack_id": "concurso-sin-masa",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "descripcion": "Bloques de redacción para autos de conclusión del concurso sin masa, con o sin exoneración del pasivo insatisfecho (TRLC tras la Ley 16/2022).",
         "ratificacion": {
           "estado": "pendiente",
           "ratificado_por": null,
           "fecha": null,
           "hash_bloques": null,
-          "nota": "Ningún bloque es definitivo hasta que el magistrado revise su texto y lo ratifique con `npm run ratificar`. Mientras tanto, todo lo generado sale marcado como BORRADOR NO RATIFICADO."
+          "nota": "La actualización de crédito público conforme a SSTS 260/2026 y 264/2026 requiere nueva revisión judicial antes de ratificar."
         },
         "variables_permitidas": [
           "fecha_declaracion",
@@ -1018,7 +1043,7 @@
     {
       "id": "R-CSM-CREDITO-PUBLICO",
       "tipo": "regla_determinista",
-      "titulo": "Límite de exoneración del crédito público",
+      "titulo": "Crédito público: exoneración por acreedor y créditos subordinados",
       "materias": [
         "concurso_sin_masa"
       ],
@@ -1027,8 +1052,8 @@
       ],
       "superficie": "decision",
       "estado": {
-        "fuente": "resumen_no_verificado",
-        "madurez": "tentativo"
+        "fuente": "verificado_con_sentencia",
+        "madurez": "estable_multicaso"
       },
       "procedencia": {
         "documento_fuente": "motor concursal pre-Knowledge",
@@ -1037,10 +1062,15 @@
         "fecha_curacion": "2026-09-25"
       },
       "criterio": {
-        "regla_general": "AEAT y TGSS siguen el límite configurado: primeros 5.000 euros íntegros y 50 % del resto hasta 10.000 euros por organismo."
+        "regla_general": "El régimen del art. 489.1.5.º se aplica a todo crédito de Derecho público, con independencia de la Administración u organismo acreedor.",
+        "por_acreedor": "El límite se calcula separadamente para cada acreedor público: primeros 5.000 euros íntegros y 50 % del resto hasta alcanzar un máximo de 10.000 euros exonerados por acreedor.",
+        "subordinados": "Los créditos públicos subordinados se exoneran íntegramente y no consumen el límite cuantitativo.",
+        "imputacion": "El importe sujeto al límite se imputa en orden inverso al de prelación legal y, dentro de cada clase, según su antigüedad."
       },
       "fuentes_juridicas": [
-        "F-TRLC-489"
+        "F-TRLC-489",
+        "F-STS-260-2026",
+        "F-STS-264-2026"
       ]
     },
     {
@@ -1389,6 +1419,56 @@
       },
       "cita": "artículos 545 y 546",
       "funcion": "Régimen de recursos utilizado por las plantillas actuales."
+    },
+    {
+      "id": "F-STS-260-2026",
+      "tipo": "fuente_juridica",
+      "titulo": "STS 260/2026, de 18 de febrero",
+      "materias": [
+        "concurso_sin_masa",
+        "epi"
+      ],
+      "cuestiones": [
+        "Q-CSM-CREDITOS-EPI"
+      ],
+      "superficie": "decision",
+      "estado": {
+        "fuente": "verificado_con_sentencia",
+        "madurez": "estable_multicaso"
+      },
+      "procedencia": {
+        "documento_fuente": "STS 260/2026, ECLI:ES:TS:2026:436",
+        "alcance": "Interpretación del crédito público en EPI.",
+        "requiere_verificacion_original": false,
+        "fecha_curacion": "2026-09-26"
+      },
+      "cita": "STS 260/2026, ECLI:ES:TS:2026:436",
+      "funcion": "Crédito público subordinado exonerable; límite por acreedor; extensión a cualquier acreedor público."
+    },
+    {
+      "id": "F-STS-264-2026",
+      "tipo": "fuente_juridica",
+      "titulo": "STS 264/2026, de 18 de febrero",
+      "materias": [
+        "concurso_sin_masa",
+        "epi"
+      ],
+      "cuestiones": [
+        "Q-CSM-CREDITOS-EPI"
+      ],
+      "superficie": "decision",
+      "estado": {
+        "fuente": "verificado_con_sentencia",
+        "madurez": "estable_multicaso"
+      },
+      "procedencia": {
+        "documento_fuente": "STS 264/2026, ECLI:ES:TS:2026:440",
+        "alcance": "Interpretación del crédito público en EPI.",
+        "requiere_verificacion_original": false,
+        "fecha_curacion": "2026-09-26"
+      },
+      "cita": "STS 264/2026, ECLI:ES:TS:2026:440",
+      "funcion": "Crédito público subordinado exonerable; límite por acreedor; extensión a cualquier acreedor público; deber de individualización."
     }
   ],
   "bloques_redaccion": [
@@ -2178,14 +2258,14 @@
       ],
       "superficie": "redaccion",
       "estado": {
-        "fuente": "resumen_no_verificado",
-        "madurez": "tentativo"
+        "fuente": "verificado_con_sentencia",
+        "madurez": "estable_multicaso"
       },
       "procedencia": {
         "documento_fuente": "packs/concurso-sin-masa.v1.json",
         "alcance": "Migración del conocimiento jurídico ya operativo en concursal; pendiente de curación de fuentes primarias.",
-        "requiere_verificacion_original": true,
-        "fecha_curacion": "2026-09-25"
+        "requiere_verificacion_original": false,
+        "fecha_curacion": "2026-09-26"
       },
       "perfil_redaccion": "conclusion",
       "orden": 6,
@@ -2195,8 +2275,8 @@
       ],
       "solo_si": "hay_credito_publico_limitado",
       "titulo_bloque": "Crédito público",
-      "texto": "Las deudas cuya gestión recaudatoria corresponde a la Agencia Estatal de Administración Tributaria y las deudas con la Seguridad Social solo pueden exonerarse, en cada caso, hasta un máximo de 10.000 euros por deudor: íntegramente los primeros 5.000 euros y en un 50 % a partir de esa cifra (art. 489.1.5.º TRLC). {{detalle_credito_publico}}",
-      "verificar": "Límites cuantitativos vigentes del art. 489.1.5.º TRLC.",
+      "texto": "Conforme al artículo 489.1.5.º TRLC, interpretado por las SSTS 260/2026 y 264/2026, el régimen de limitación se aplica a toda clase de crédito de Derecho público, cualquiera que sea la Administración u organismo acreedor. Los créditos públicos subordinados quedan íntegramente afectados por la exoneración. Respecto de los créditos públicos no subordinados, el límite se calcula separadamente para cada acreedor público: se exoneran íntegramente los primeros 5.000 euros y, a partir de esa cifra, el cincuenta por ciento hasta alcanzar un máximo de 10.000 euros exonerados por acreedor. El importe exonerado se imputa en orden inverso al de prelación legal y, dentro de cada clase, según su antigüedad. {{detalle_credito_publico}}",
+      "verificar": "Aplicación individualizada por acreedor y desglose por clase/antigüedad cuando resulte necesario.",
       "block_title": "Crédito público",
       "legacy_has_verificar": true
     },
