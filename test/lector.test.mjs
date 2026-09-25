@@ -75,6 +75,40 @@ test('concurso ordinario con vivienda y plan de pagos: bloqueado y con avisos', 
   assert.equal(hip.concepto, 'Préstamo hipotecario vivienda');
 });
 
+test('escrito en nombre propio sin etiquetas rígidas: extrae deudor, importes y acreedores', () => {
+  const l = leerSolicitud(textoPlanoAPaginas(`
+AL JUZGADO DE LO MERCANTIL DE SEVILLA
+D. JUAN PÉREZ GÓMEZ, mayor de edad, con DNI ficticio 12345678-Z, con domicilio a efectos de este documento en Calle Ejemplo nº 12, 2º B, 41000 Sevilla, comparece en su propio nombre y derecho.
+Que mediante el presente escrito solicita la declaración de concurso voluntario sin masa de persona física, al encontrarse en situación de insolvencia actual.
+Tercero. Relación simplificada de acreedores.
+Acreedor (ficticio) | Concepto | Importe aproximado
+Banco Ejemplo, S.A. | Préstamo personal | 18.000 EUR
+Financiera Sur, S.L. | Crédito al consumo | 6.500 EUR
+Tarjeta Azul, S.A. | Tarjeta de crédito | 2.400 EUR
+Total | 26.900 EUR
+Cuarto. Inexistencia de masa activa suficiente.
+El solicitante no es propietario de bienes inmuebles. Mantiene un saldo bancario aproximado de 340 euros y dispone únicamente de mobiliario y efectos personales de uso ordinario, sin valor relevante de realización. No consta ningún otro activo con valor suficiente.
+Quinto. Documentación.
+Se acompaña una relación de acreedores.
+En Sevilla, a 25 de septiembre de 2026.
+`), { nombre_fichero: 'escrito-sencillo-sin-etiquetas.pdf' });
+
+  assert.equal(l.campos.deudor_nombre.valor, 'JUAN PÉREZ GÓMEZ');
+  assert.equal(l.campos.deudor_nif.valor, '12345678Z');
+  assert.equal(l.campos.deudor_domicilio.valor, 'Calle Ejemplo nº 12, 2º B, 41000 Sevilla');
+  assert.equal(l.campos.pasivo_declarado.valor, 2690000);
+  assert.equal(l.campos.activo_declarado.valor, 34000);
+  assert.deepEqual(l.acreedores.map((a) => [a.acreedor, a.importe]), [
+    ['Banco Ejemplo, S.A.', 1800000],
+    ['Financiera Sur, S.L.', 650000],
+    ['Tarjeta Azul, S.A.', 240000]
+  ]);
+  assert.equal(l.suma_acreedores, 2690000);
+  assert.equal(l.clasificacion.insolvencia, 'actual');
+  assert.equal(l.documentos.relacion_acreedores.presente, true);
+  assert.ok(!l.alertas.some((a) => /No se ha encontrado (?:el nombre|el NIF|el domicilio|el pasivo|el activo|la relación de acreedores)/.test(a.texto)));
+});
+
 test('determinismo: mismo PDF → misma lectura y mismo hash', async () => {
   const a = await leer('01-sin-masa-escrito');
   const b = await leer('01-sin-masa-escrito');
