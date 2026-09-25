@@ -13,6 +13,8 @@ export function createKnowledgeRuntime(compiled) {
   const rules = byId(decision.reglas);
   const sources = byId(decision.fuentes);
   const draftingBlocks = arr(compiled.superficies.redaccion.bloques_redaccion);
+  const decisionCollections = new Map(Object.entries(decision).map(([name, items]) => [name, arr(items)]));
+  const draftingCollections = new Map([['bloques_redaccion', draftingBlocks]]);
 
   return Object.freeze({
     compiled,
@@ -23,6 +25,21 @@ export function createKnowledgeRuntime(compiled) {
     getRule(id) { return rules.get(id) || null; },
     getSource(id) { return sources.get(id) || null; },
     rulesForQuestion(id) { return [...rules.values()].filter((rule) => arr(rule.cuestiones).includes(id)); },
+    listCollection(name) {
+      const values = decisionCollections.get(name) || draftingCollections.get(name) || [];
+      return Object.freeze([...values]);
+    },
+    summary() {
+      return Object.freeze({
+        pack_id: compiled.pack_id,
+        version: compiled.version,
+        titulo: compiled.titulo,
+        materias: Object.freeze([...(compiled.materias || [])]),
+        estadisticas: Object.freeze({ ...(compiled.estadisticas || {}) }),
+        routing: Object.freeze({ ...(compiled.gobernanza?.routing || {}) }),
+        runtime_status: compiled.gobernanza?.runtime_status || null
+      });
+    },
     getCatalog(name) { return compiled.gobernanza?.catalogos?.[name] || null; },
     getWorkflow(name) { return compiled.gobernanza?.workflows?.[name] || null; },
     getRedactionProfile(name) { return compiled.gobernanza?.redaccion?.[name] || null; },
