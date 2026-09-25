@@ -220,6 +220,29 @@ function descargar(nombre, contenido, tipo) {
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+function documentoHtml(doc) {
+  return `<article class="resolucion-preview">${doc.filter((el) => el.tipo !== 'aviso').map((el) => {
+    if (el.tipo === 'encabezado') return `<div class="auto-meta">${esc(el.texto)}</div>`;
+    if (el.tipo === 'titulo') {
+      const clase = /^AUTO\\b/.test(el.texto) ? 'auto-resolucion' : 'auto-seccion';
+      return `<h4 class="${clase}">${esc(el.texto)}</h4>`;
+    }
+    if (el.tipo === 'apartado') {
+      const pref = `${el.numero}.${el.titulo ? ` ${el.titulo}.` : ''}`;
+      return `<p class="auto-apartado"><strong>${esc(pref)}</strong> ${esc(el.texto)}</p>`;
+    }
+    if (el.tipo === 'dispositivo') {
+      return `<p class="auto-dispositivo"><strong>${el.numero}.º</strong> ${esc(el.texto)}</p>`;
+    }
+    if (el.tipo === 'tabla') {
+      const conNotas = el.lineas.some((l) => l.nota);
+      return `<div class="tabla-auto-wrap"><table class="tabla-auto"><thead><tr><th>N.º</th><th>Acreedor</th><th>Concepto</th><th>Importe</th>${conNotas ? '<th>Observaciones</th>' : ''}</tr></thead><tbody>${el.lineas.map((l) => `<tr><td>${l.n}</td><td>${esc(l.acreedor)}</td><td>${esc(l.concepto)}</td><td class="importe">${esc(l.importe)}</td>${conNotas ? `<td>${esc(l.nota || '')}</td>` : ''}</tr>`).join('')}<tr class="total"><td></td><td>TOTAL</td><td></td><td class="importe">${esc(el.total)}</td>${conNotas ? '<td></td>' : ''}</tr></tbody></table></div>`;
+    }
+    if (el.tipo === 'firma') return `<p class="auto-firma">${esc(el.texto)}</p>`;
+    return `<p class="auto-parrafo">${esc(el.texto)}</p>`;
+  }).join('')}</article>`;
+}
+
 function pintarResultado(destino, r, base, expediente) {
   const titulos = { borrador: 'Borrador generado', borrador_no_ratificado: 'Borrador generado (bloques sin ratificar)', pendiente_decision: 'Falta la decisión del juez', pendiente_tramite: 'El procedimiento no está en fase', fuera_de_alcance: 'Fuera del alcance de la plantilla', expediente_invalido: 'Faltan datos o son incoherentes', bloqueado_por_calidad: 'Bloqueado por los controles de calidad', error_redaccion: 'Error de redacción' };
   const lista = [...(r.errores || []), ...(r.motivos || []), ...(r.controles?.fallos || [])];
@@ -228,7 +251,7 @@ function pintarResultado(destino, r, base, expediente) {
     <h3>${esc(titulos[r.estado] || r.estado)}</h3>
     ${lista.length ? `<ul class="alertas">${lista.map((m) => `<li class="${nivel === 'info' ? 'aviso' : 'bloqueo'}">${esc(m)}</li>`).join('')}</ul>` : ''}
     ${r.controles?.avisos?.length ? `<ul class="alertas">${r.controles.avisos.map((m) => `<li class="aviso">${esc(m)}</li>`).join('')}</ul>` : ''}
-    ${r.texto ? `<div class="texto-auto">${esc(r.texto)}</div>
+    ${r.texto ? `<div class="texto-auto">${documentoHtml(r.documento)}</div>
       <p class="hash">hash IR ${esc(r.ir.hash_ir.slice(0, 16))} · bloques ${esc(r.ir.procedencia.pack_id)} v${esc(r.ir.procedencia.pack_version)}</p>
       <div class="acciones">
         <button data-d="txt">Descargar .txt</button><button data-d="docx">Descargar Word</button><button data-d="json">Descargar expediente (.json)</button>
