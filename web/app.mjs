@@ -1129,7 +1129,11 @@ $('generar-declaracion').onclick = async () => {
 
 function prepararConclusion() {
   const e = estado.expediente;
-  estado.conclusion = declaracionAExpedienteConclusion(e, { fecha_declaracion: e.fecha_resolucion, solicitud_epi_fecha: e.solicitud.pide_epi && e.deudor.tipo === 'persona_natural' ? '' : null });
+  estado.conclusion = declaracionAExpedienteConclusion(e, {
+    fecha_declaracion: e.fecha_resolucion,
+    fecha_resolucion: todayLocal(),
+    solicitud_epi_fecha: e.solicitud.pide_epi && e.deudor.tipo === 'persona_natural' ? '' : null
+  });
   if (estado.conclusion.tramite.solicitud_epi === null && e.solicitud.pide_epi) estado.conclusion.tramite.solicitud_epi = { fecha: '' };
   const conEpi = estado.conclusion.tramite.solicitud_epi != null;
   if (conEpi) { estado.conclusion.tramite.traslado_acreedores ??= null; estado.conclusion.tramite.oposiciones ??= []; }
