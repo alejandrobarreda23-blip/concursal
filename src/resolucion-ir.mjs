@@ -37,7 +37,7 @@ export function cabeceraIR(exp) {
   };
 }
 
-export function construirIR({ expediente, fase, clasificacion, pack }) {
+export function construirIR({ expediente, fase, clasificacion, pack, knowledge = null }) {
   const exp = expediente;
   const ctx = {
     persona_juridica: exp.deudor.tipo === 'persona_juridica',
@@ -74,6 +74,11 @@ export function construirIR({ expediente, fase, clasificacion, pack }) {
     bloques,
     procedencia: {
       motor: MOTOR_VERSION,
+      ...(knowledge ? {
+        knowledge_pack_id: knowledge.pack_id,
+        knowledge_version: knowledge.version,
+        knowledge_hash: knowledge.pack_hash
+      } : {}),
       pack_id: pack.pack_id,
       pack_version: pack.version,
       hash_bloques: hashBloques(pack),

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const PUERTO = Number(process.env.PUERTO || 5174);
-const PERMITIDOS = ['web/', 'src/', 'packs/', 'ejemplos/', 'node_modules/pdfjs-dist/build/', 'node_modules/pdfjs-dist/standard_fonts/', 'node_modules/docx/dist/'];
+const PERMITIDOS = ['web/', 'src/', 'packs/', 'knowledge/', 'ejemplos/', 'node_modules/pdfjs-dist/build/', 'node_modules/pdfjs-dist/standard_fonts/', 'node_modules/docx/dist/'];
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.pfb': 'application/octet-stream', '.ttf': 'font/ttf', '.map': 'application/json' };
 
 createServer(async (req, res) => {

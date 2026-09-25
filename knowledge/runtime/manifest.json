@@ -1,0 +1,46 @@
+{
+  "manifest_version": "knowledge-runtime-manifest-v1",
+  "runtime_version": "legal-core-knowledge-runtime-v1",
+  "packs": [
+    {
+      "file": "concursal/concurso-sin-masa-1.0.0.json",
+      "pack_id": "KP-CONCURSAL-CSM",
+      "version": "1.0.0",
+      "materias": [
+        "concurso_sin_masa",
+        "insolvencia",
+        "epi"
+      ],
+      "routing": {
+        "accepted_profiles": [
+          "declaracion_sin_masa",
+          "conclusion_con_epi",
+          "conclusion_sin_epi"
+        ],
+        "display_order": 100,
+        "extends": [],
+        "load_policy": "eager",
+        "merge_mode": "standalone",
+        "precedence": 100,
+        "precedence_policy": "explicit_numeric_no_filesystem_order",
+        "primary_matter": "concurso_sin_masa",
+        "role": "base",
+        "specializes": []
+      },
+      "source_hash": "9e3d486d5c238e80b9e5bff09d67de57a578126c82bea227ba289a4b24867f22",
+      "pack_hash": "4c3ae4e9638cd0e32cbeb724ff2bb51abc5238bd7022e3b85d426a1453b03ffc",
+      "estadisticas": {
+        "cuestiones": 10,
+        "reglas": 11,
+        "esquemas_probatorios": 0,
+        "precedentes": 0,
+        "fuentes": 13,
+        "bloques_redaccion": 30,
+        "antipatrones": 2,
+        "conflictos": 0,
+        "huecos": 1
+      }
+    }
+  ],
+  "manifest_hash": "f669daa03489fbd7cb65bf2164121f5eae8774aaa9b962c5c4e17f554db34a7f"
+}

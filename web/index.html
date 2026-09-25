@@ -31,6 +31,12 @@
             <span class="nav-icon">▤</span><span>Procedimientos</span><span id="nav-case-count" class="judicial-nav-counter oculto">0</span>
           </button>
         </div>
+        <div class="judicial-nav-group">
+          <div class="judicial-nav-label">Criterio y análisis</div>
+          <button class="judicial-nav-item" data-app-view="knowledge">
+            <span class="nav-icon">K</span><span>Knowledge</span>
+          </button>
+        </div>
       </nav>
 
       <div class="judicial-sidebar-footer">
@@ -53,6 +59,7 @@
       <nav class="judicial-mobile-nav" aria-label="Navegación móvil">
         <button class="judicial-mobile-nav-item is-active" data-app-view="dashboard">Bandeja</button>
         <button class="judicial-mobile-nav-item" data-app-view="procedimientos">Procedimientos</button>
+        <button class="judicial-mobile-nav-item" data-app-view="knowledge">Knowledge</button>
       </nav>
 
       <main class="judicial-main">
@@ -81,7 +88,11 @@
                 <input type="file" id="fichero" accept="application/pdf,.pdf" hidden>
                 <span class="upload-glyph">＋</span>
                 <strong>Arrastre aquí una solicitud de concurso</strong>
-                <span>PDF con texto · no se envía a ningún servidor</span>
+                <span>PDF con texto · lectura local por defecto</span>
+              </label>
+              <label class="extractor-option">
+                <input id="ai-extraction-toggle" type="checkbox">
+                <span><b>Extracción IA asistida</b><small>Si se activa, tras leer el PDF localmente se envía únicamente su texto al extractor server-side configurado. La IA propone datos; nunca adopta decisiones judiciales.</small></span>
               </label>
               <div id="upload-status"></div>
             </section>
@@ -120,6 +131,23 @@
           <section class="judicial-section-card">
             <div id="procedure-list" class="case-list full"></div>
           </section>
+        </section>
+
+        <section id="view-knowledge" class="app-view oculto">
+          <div class="procedures-hero">
+            <div><div class="judicial-kicker">Criterio y análisis</div><h1>Knowledge</h1><p>El Legal Core ejecuta contratos genéricos. El derecho concursal vive en packs versionados y puede crecer sin convertir el motor en un conjunto de reglas específicas.</p></div>
+          </div>
+          <div id="knowledge-summary"></div>
+          <div class="knowledge-layout">
+            <section class="judicial-section-card">
+              <div class="judicial-section-heading"><div><div class="judicial-kicker">Cobertura</div><h2>Módulos</h2><p>Distribución de las reglas del Knowledge de persona física.</p></div></div>
+              <div id="knowledge-modules" class="knowledge-module-grid"></div>
+            </section>
+            <section class="judicial-section-card">
+              <div class="judicial-section-heading"><div><div class="judicial-kicker">Gobernanza</div><h2>Advertencias del corpus</h2><p>Estas advertencias provienen del propio Knowledge y no se silencian al importarlo.</p></div></div>
+              <ul id="knowledge-warnings" class="knowledge-warning-list"></ul>
+            </section>
+          </div>
         </section>
 
         <section id="view-workspace" class="app-view oculto case-workspace">

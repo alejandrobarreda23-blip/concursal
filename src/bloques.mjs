@@ -2,13 +2,6 @@
 // cada bloque tiene id único, texto sin ambigüedad y hash; el paquete entero se ratifica por hash.
 import { arr, text, hash, deepFreeze } from './util.mjs';
 
-export const VARIABLES_PERMITIDAS = Object.freeze([
-  'fecha_declaracion', 'fecha_solicitud', 'deudor',
-  'total_pasivo', 'total_exonerado', 'total_no_exonerado', 'detalle_credito_publico',
-  // auto de declaración
-  'nif', 'domicilio', 'insolvencia', 'supuesto', 'supuesto_letra', 'supuesto_texto', 'numero_acreedores'
-]);
-
 const SECCIONES = ['antecedentes', 'fundamentos', 'dispositiva', 'pie'];
 
 export function hashBloques(pack) {
@@ -18,8 +11,9 @@ export function hashBloques(pack) {
   })));
 }
 
-export function validarPack(pack) {
+export function validarPack(pack, { variablesPermitidas = null } = {}) {
   const errores = [];
+  const permitidas = new Set(Array.isArray(variablesPermitidas) ? variablesPermitidas : []);
   const vistos = new Set();
   for (const [i, b] of arr(pack?.bloques).entries()) {
     const id = text(b?.id);
@@ -30,7 +24,7 @@ export function validarPack(pack) {
     if (!text(b.texto)) errores.push(`${id}: texto vacío.`);
     if (!arr(b.variantes).length) errores.push(`${id}: sin variantes.`);
     for (const m of text(b.texto).matchAll(/\{\{([^}]+)\}\}/g)) {
-      if (!VARIABLES_PERMITIDAS.includes(m[1])) errores.push(`${id}: variable no permitida {{${m[1]}}}.`);
+      if (permitidas.size && !permitidas.has(m[1])) errores.push(`${id}: variable no permitida {{${m[1]}}}.`);
     }
     if (/\[[^\]]*\/[^\]]*\]/.test(b.texto)) errores.push(`${id}: contiene alternativas sin resolver entre corchetes.`);
   }
@@ -46,8 +40,8 @@ export function estadoRatificacion(pack) {
 }
 
 // Valida un paquete ya parseado (sirve igual en Node y en el navegador).
-export function prepararPack(pack) {
-  const errores = validarPack(pack);
+export function prepararPack(pack, opciones = {}) {
+  const errores = validarPack(pack, opciones);
   if (errores.length) throw new Error(`Paquete de bloques inválido:\n- ${errores.join('\n- ')}`);
   return deepFreeze(pack);
 }

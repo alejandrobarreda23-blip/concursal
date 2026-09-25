@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const DIST = join(RAIZ, 'dist');
 
-const DIRECTORIOS = ['web', 'src', 'packs', 'node_modules/pdfjs-dist/standard_fonts'];
+const DIRECTORIOS = ['web', 'src', 'packs', 'knowledge', 'node_modules/pdfjs-dist/standard_fonts'];
 const FICHEROS = [
   'node_modules/pdfjs-dist/build/pdf.mjs',
   'node_modules/pdfjs-dist/build/pdf.worker.mjs',

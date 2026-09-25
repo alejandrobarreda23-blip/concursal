@@ -1,31 +1,29 @@
-// Auto de DECLARACIÓN de concurso sin masa (art. 37 ter TRLC) a partir de la solicitud del deudor.
-// Mismo flujo que el auto de conclusión: validar → fase → IR con hash → redactar → controles.
+// Auto de declaración: orquestación sobre Legal Core + Knowledge concursal.
+// El motor conserva validación, IR, redacción y calidad; las reglas jurídicas,
+// catálogos, workflows y bloques de texto residen en el Knowledge Pack.
 import { arr, obj, text, hash, deepFreeze, aCentimos, fechaValida, fechaLarga, formatoEuros } from './util.mjs';
-import { CLASES_CREDITO } from './validar-expediente.mjs';
+import { creditClassIds } from './core/knowledge/credit-engine.mjs';
+import { evaluateWorkflow, evaluateWorkflowWarnings } from './core/knowledge/workflow.mjs';
 import { estadoRatificacion, hashBloques } from './bloques.mjs';
 import { cabeceraIR, MOTOR_VERSION } from './resolucion-ir.mjs';
 import { redactar, aTextoPlano } from './render.mjs';
 import { controlesCalidad } from './controles-calidad.mjs';
 
-// Supuestos del art. 37 bis.1 TRLC (texto para el fundamento; el juez elige cuál aprecia).
-export const SUPUESTOS_37_BIS = Object.freeze({
-  '1': 'el deudor carece de bienes y derechos legalmente embargables',
-  '2': 'el coste de realización de sus bienes y derechos sería manifiestamente desproporcionado respecto de su previsible valor venal',
-  '3': 'sus bienes y derechos libres de cargas son de valor inferior al previsible coste del procedimiento',
-  '4': 'los gravámenes y cargas que pesan sobre sus bienes y derechos superan su valor de mercado'
-});
+export function catalogoSupuestos37Bis(knowledge) {
+  if (!knowledge) return {};
+  const catalog = knowledge.getCatalog('supuesto_37_bis') || {};
+  return Object.freeze(Object.fromEntries(Object.entries(catalog).map(([key, value]) => [key, value.texto])));
+}
 
-const DOCUMENTOS_ART_7 = ['poder', 'memoria', 'inventario', 'relacion_acreedores'];
-const LETRAS_37_BIS = Object.freeze({ '1': 'a', '2': 'b', '3': 'c', '4': 'd' });
-
-export function validarExpedienteDeclaracion(exp) {
+export function validarExpedienteDeclaracion(exp, { knowledge } = {}) {
   const e = [];
   const push = (r, m) => e.push(`${r}: ${m}`);
+  if (!knowledge) return ['knowledge: falta el Knowledge Runtime.'];
   if (!obj(exp)) return ['expediente: debe ser un objeto JSON.'];
+  const clasesCredito = creditClassIds(knowledge);
   for (const k of ['tribunal', 'seccion', 'localidad']) if (!text(exp.organo?.[k])) push(`organo.${k}`, 'falta.');
   if (!Number.isInteger(exp.organo?.plaza) || exp.organo.plaza < 1) push('organo.plaza', 'debe ser un entero ≥ 1.');
   for (const k of ['numero', 'nig']) if (!text(exp.procedimiento?.[k])) push(`procedimiento.${k}`, 'falta.');
-  // El nombre del juez puede completarse después: el borrador deja un hueco visible.
   if (!['Magistrado', 'Magistrada', 'Juez', 'Jueza'].includes(text(exp.juez?.cargo))) push('juez.cargo', 'debe ser Magistrado, Magistrada, Juez o Jueza.');
   if (!fechaValida(exp.fecha_resolucion)) push('fecha_resolucion', 'fecha ISO (AAAA-MM-DD) inválida.');
   for (const k of ['nombre', 'nif', 'domicilio']) if (!text(exp.deudor?.[k])) push(`deudor.${k}`, 'falta.');
@@ -49,44 +47,18 @@ export function validarExpedienteDeclaracion(exp) {
     if (!text(c?.concepto)) push(`${r}.concepto`, 'falta.');
     const imp = aCentimos(c?.importe);
     if (imp == null || imp <= 0) push(`${r}.importe`, 'debe ser un número positivo.');
-    if (!CLASES_CREDITO.includes(text(c?.clase))) push(`${r}.clase`, `no reconocida (${c?.clase}).`);
+    if (!clasesCredito.includes(text(c?.clase))) push(`${r}.clase`, `no reconocida (${c?.clase}).`);
   });
   return e;
 }
 
-export function determinarFaseDeclaracion(exp) {
-  const s = exp.solicitud;
-  const fuera = [];
-  if (s.tipo && s.tipo !== 'concurso_sin_masa') fuera.push(`La solicitud no es de concurso sin masa (${s.tipo}).`);
-  if (s.solicitante && s.solicitante !== 'deudor') fuera.push('La solicitud no la formula el deudor (concurso necesario).');
-  if (s.plan_pagos) fuera.push('Se pide exoneración con plan de pagos: no es el cauce del concurso sin masa simple.');
-  if (fuera.length) return { estado: 'fuera_de_alcance', variante: null, motivos: fuera };
-
-  // Las carencias documentales no impiden preparar un borrador: se señalan como advertencia.
-  // La decisión jurídica sigue siendo humana y sí bloquea la redacción.
-  const d = exp.decision_judicial;
-  const pend = [];
-  if (!obj(d)) pend.push('Falta decision_judicial.');
-  else {
-    if (d.sentido !== 'declarar_sin_masa') pend.push('decision_judicial.sentido debe ser "declarar_sin_masa".');
-    if (d.competencia_verificada !== true) pend.push('El juez debe confirmar la competencia (decision_judicial.competencia_verificada = true).');
-    if (d.insolvencia_apreciada !== true) pend.push('El juez debe apreciar la insolvencia (decision_judicial.insolvencia_apreciada = true).');
-    if (!SUPUESTOS_37_BIS[String(d.supuesto_37_bis)]) pend.push('El juez debe indicar el supuesto del art. 37 bis.1 TRLC que aprecia (1, 2, 3 o 4).');
-  }
-  if (pend.length) return { estado: 'pendiente_decision', variante: 'declaracion_sin_masa', motivos: pend };
-  return { estado: 'listo', variante: 'declaracion_sin_masa', motivos: [] };
+export function determinarFaseDeclaracion(exp, { knowledge } = {}) {
+  if (!knowledge) throw new Error('determinarFaseDeclaracion: falta Knowledge Runtime.');
+  return evaluateWorkflow(knowledge, 'declaracion', exp);
 }
 
-function advertenciasBorradorDeclaracion(exp) {
-  const avisos = [];
-  const faltan = DOCUMENTOS_ART_7.filter((d) => exp.solicitud?.documentos?.[d] !== true);
-  if (faltan.length) {
-    avisos.push(`No consta como acompañada toda la documentación del art. 7 TRLC: ${faltan.join(', ').replace(/_/g, ' ')}. El borrador se genera para revisión y deberá completarse o adaptarse antes de la firma.`);
-  }
-  if (!text(exp.juez?.nombre)) {
-    avisos.push('Falta el nombre del juez/a: se deja un espacio en blanco en el borrador.');
-  }
-  return avisos;
+function advertenciasBorradorDeclaracion(exp, knowledge) {
+  return evaluateWorkflowWarnings(knowledge, 'declaracion', exp);
 }
 
 function filasPasivo(creditos) {
@@ -98,9 +70,9 @@ function filasPasivo(creditos) {
   return { filas, totales: { pasivo, exonerado: 0, no_exonerado: pasivo } };
 }
 
-export function construirIRDeclaracion(exp, pack) {
+export function construirIRDeclaracion(exp, pack, knowledge) {
   const { filas, totales } = filasPasivo(exp.creditos);
-  const advertencias = advertenciasBorradorDeclaracion(exp);
+  const advertencias = advertenciasBorradorDeclaracion(exp, knowledge);
   const hayRepresentacion = Boolean(text(exp.representacion?.procurador) || text(exp.representacion?.abogado));
   const ctx = {
     pide_epi: exp.solicitud.pide_epi === true && exp.deudor.tipo === 'persona_natural',
@@ -108,6 +80,8 @@ export function construirIRDeclaracion(exp, pack) {
     sin_representacion: !hayRepresentacion
   };
   const supuesto = String(exp.decision_judicial.supuesto_37_bis);
+  const supuestos = knowledge.getCatalog('supuesto_37_bis') || {};
+  const supuestoCfg = supuestos[supuesto];
   const ratificacion = estadoRatificacion(pack);
   const ir = {
     version: 'csm-ir-v1',
@@ -125,8 +99,8 @@ export function construirIRDeclaracion(exp, pack) {
       fecha_solicitud: fechaLarga(exp.solicitud.fecha),
       insolvencia: exp.solicitud.insolvencia,
       supuesto,
-      supuesto_letra: LETRAS_37_BIS[supuesto],
-      supuesto_texto: SUPUESTOS_37_BIS[supuesto],
+      supuesto_letra: supuestoCfg?.codigo,
+      supuesto_texto: supuestoCfg?.texto,
       numero_acreedores: String(filas.length),
       total_pasivo: formatoEuros(totales.pasivo)
     },
@@ -136,6 +110,9 @@ export function construirIRDeclaracion(exp, pack) {
     ...(advertencias.length ? { advertencias_borrador: advertencias } : {}),
     procedencia: {
       motor: MOTOR_VERSION,
+      knowledge_pack_id: knowledge.pack_id,
+      knowledge_version: knowledge.version,
+      knowledge_hash: knowledge.pack_hash,
       pack_id: pack.pack_id,
       pack_version: pack.version,
       hash_bloques: hashBloques(pack),
@@ -149,17 +126,18 @@ export function construirIRDeclaracion(exp, pack) {
   return deepFreeze(ir);
 }
 
-export function generarAutoDeclaracion(expediente, { pack }) {
-  if (!pack) throw new Error('generarAutoDeclaracion: falta el paquete de bloques.');
-  const errores = validarExpedienteDeclaracion(expediente);
+export function generarAutoDeclaracion(expediente, { knowledge, pack = null } = {}) {
+  if (!knowledge) throw new Error('generarAutoDeclaracion: falta Knowledge Runtime.');
+  const draftPack = pack || knowledge.redactionPack('declaracion');
+  const errores = validarExpedienteDeclaracion(expediente, { knowledge });
   if (errores.length) return { estado: 'expediente_invalido', errores };
-  const fase = determinarFaseDeclaracion(expediente);
+  const fase = determinarFaseDeclaracion(expediente, { knowledge });
   if (fase.estado !== 'listo') return fase;
-  const ir = construirIRDeclaracion(expediente, pack);
+  const ir = construirIRDeclaracion(expediente, draftPack, knowledge);
   let documento, texto;
   try { documento = redactar(ir); texto = aTextoPlano(documento); } catch (err) { return { estado: 'error_redaccion', errores: [err.message], ir }; }
   const controlesBase = controlesCalidad(ir, documento, texto);
-  const avisosBorrador = advertenciasBorradorDeclaracion(expediente);
+  const avisosBorrador = advertenciasBorradorDeclaracion(expediente, knowledge);
   const controles = Object.freeze({
     ...controlesBase,
     avisos: [...new Set([...(controlesBase.avisos || []), ...avisosBorrador])]

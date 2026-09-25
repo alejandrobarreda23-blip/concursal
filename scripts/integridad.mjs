@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { hash } from '../src/util.mjs';
 
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
-const CARPETAS = ['src', 'packs', 'web', 'test/golden'];
+const CARPETAS = ['src', 'packs', 'knowledge', 'web', 'test/golden'];
 const MANIFIESTO = join(RAIZ, 'integridad', 'manifiesto.json');
 
 function ficheros(dir) {

@@ -1,6 +1,5 @@
-// Motor puro (Node y navegador): expediente JSON → borrador de auto (o motivos por los que no se genera).
-// Flujo: validar → fase → clasificar créditos → IR → redactar → controles de calidad.
-// Cualquier fallo detiene el proceso sin producir texto (fail-closed).
+// Motor de resolución sobre Legal Core + Knowledge.
+// La orquestación es estable; workflow, clasificación jurídica y redacción vienen del pack.
 import { validarExpediente } from './validar-expediente.mjs';
 import { determinarFase, ESTADOS } from './fases.mjs';
 import { clasificarCreditos } from './creditos.mjs';
@@ -8,16 +7,17 @@ import { construirIR } from './resolucion-ir.mjs';
 import { redactar, aTextoPlano } from './render.mjs';
 import { controlesCalidad } from './controles-calidad.mjs';
 
-export function generarAutoConclusion(expediente, { pack }) {
-  if (!pack) throw new Error('generarAutoConclusion: falta el paquete de bloques.');
-  const errores = validarExpediente(expediente);
+export function generarAutoConclusion(expediente, { knowledge, pack = null } = {}) {
+  if (!knowledge) throw new Error('generarAutoConclusion: falta Knowledge Runtime.');
+  const draftPack = pack || knowledge.redactionPack('conclusion');
+  const errores = validarExpediente(expediente, { knowledge });
   if (errores.length) return { estado: 'expediente_invalido', errores };
 
-  const fase = determinarFase(expediente);
+  const fase = determinarFase(expediente, { knowledge });
   if (fase.estado !== ESTADOS.LISTO) return { estado: fase.estado, variante: fase.variante, motivos: fase.motivos };
 
-  const clasificacion = clasificarCreditos(expediente.creditos);
-  const ir = construirIR({ expediente, fase, clasificacion, pack });
+  const clasificacion = clasificarCreditos(expediente.creditos, knowledge);
+  const ir = construirIR({ expediente, fase, clasificacion, pack: draftPack, knowledge });
 
   let documento, texto;
   try {
