@@ -55,3 +55,24 @@ button:focus-visible, .zona:focus-visible, input:focus-visible, select:focus-vis
 .hash { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--suave); }
 .pie { text-align: center; color: var(--suave); font-size: 12.5px; padding: 0 16px 32px; }
 @media (max-width: 600px) { .cabecera { padding: 16px; flex-direction: column; align-items: flex-start; } .paso { padding: 16px; } }
+
+/* Vista previa de resolución: aproximación al formato judicial del modelo de referencia. */
+.texto-auto { background: #ececec; padding: 18px; max-height: 680px; }
+.resolucion-preview { max-width: 790px; margin: 0 auto; background: #fff; color: #111; border: 1px solid #d8d8d8; padding: 34px 46px 42px; font-family: Arial, Helvetica, sans-serif; box-shadow: 0 2px 10px rgba(0,0,0,.07); }
+.auto-meta { font-size: 12px; line-height: 1.35; margin: 2px 0; }
+.auto-resolucion { margin: 18px 0 5px; font-size: 15px; text-align: left; color: #111; }
+.auto-seccion { margin: 24px 0 10px; font-size: 13.5px; text-align: left; color: #294a72; font-weight: 700; }
+.auto-apartado, .auto-parrafo, .auto-dispositivo { margin: 0 0 10px; font-size: 13px; line-height: 1.38; text-align: justify; }
+.auto-dispositivo { margin-bottom: 11px; }
+.auto-firma { margin-top: 28px; font-size: 13px; }
+.tabla-auto-wrap { overflow-x: auto; margin: 10px 0 16px; }
+.tabla-auto { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tabla-auto th, .tabla-auto td { border: 1px solid #b7bdc5; padding: 6px 7px; vertical-align: top; }
+.tabla-auto th { background: #e9edf2; color: #111; font-weight: 700; }
+.tabla-auto .importe { white-space: nowrap; text-align: right; }
+.tabla-auto .total td { font-weight: 700; background: #f5f6f8; }
+@media (max-width: 600px) {
+  .texto-auto { padding: 8px; }
+  .resolucion-preview { padding: 24px 18px 30px; }
+  .auto-apartado, .auto-parrafo, .auto-dispositivo { font-size: 12.5px; }
+}
