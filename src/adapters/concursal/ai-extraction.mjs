@@ -61,6 +61,8 @@ function creditorFromAi(row, index) {
     garantia: row.garantia_real === true ? 'garantía real' : null,
     importe: amountToCents(row.importe_euros),
     clase: normalizeClass(row),
+    rango_concursal: row.clase_concursal || null,
+    fecha_origen: row.fecha_origen || null,
     regla_clase: 'AI.extract.classification.v1',
     fuente: row.evidence ? {
       pagina: row.evidence.page ?? null,
@@ -72,6 +74,7 @@ function creditorFromAi(row, index) {
     ai_detalle: {
       tipo_acreedor: row.tipo_acreedor || null,
       clase_concursal: row.clase_concursal || null,
+      fecha_origen: row.fecha_origen || null,
       concepto_categoria: row.concepto_categoria || null,
       garantia_real: row.garantia_real === true,
       valor_garantia: row.valor_garantia == null ? null : Number(row.valor_garantia)
