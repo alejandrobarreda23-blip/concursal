@@ -1,0 +1,19 @@
+# Netlify: instala dependencias, genera dist/ y lo publica.
+# Este fichero prevalece sobre la configuración de build del panel de Netlify.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# La página no envía nada a ningún servidor: se bloquean conexiones externas
+# y la indexación por buscadores.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+    Referrer-Policy = "no-referrer"
+    X-Content-Type-Options = "nosniff"
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-cache"

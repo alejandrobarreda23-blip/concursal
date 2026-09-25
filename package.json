@@ -15,6 +15,7 @@
     "integridad": "node scripts/integridad.mjs --escribir",
     "golden": "node scripts/actualizar-golden.mjs",
     "app": "node scripts/servidor.mjs",
+    "build": "node scripts/construir-web.mjs",
     "leer": "node cli/leer.mjs",
     "fixtures": "python3 scripts/crear-fixtures-pdf.py"
   },

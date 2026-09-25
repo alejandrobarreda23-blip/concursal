@@ -12,6 +12,8 @@ npm install
 npm run app        # abre http://localhost:5174
 ```
 
+También se puede publicar como sitio estático (Netlify lee `netlify.toml`: ejecuta `npm run build` y publica `dist/`). Aun así, el PDF se lee en el navegador de quien lo usa y no se envía a ningún servidor.
+
 Arrastre el PDF de la solicitud a la página. El motor:
 
 - **clasifica la petición**: concurso sin masa u ordinario, voluntario o necesario, persona física o jurídica, insolvencia actual o inminente, si pide EPI o plan de pagos, si acompaña el formulario del Anexo I de los Mercantiles de Barcelona;

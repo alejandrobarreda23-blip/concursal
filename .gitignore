@@ -9,3 +9,4 @@ expedientes/
 /solicitudes/
 *.pdf
 !/test/fixtures/solicitudes/*.pdf
+/dist/
