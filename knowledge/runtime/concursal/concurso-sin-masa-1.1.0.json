@@ -123,8 +123,7 @@
               "subordinado",
               "ordinario",
               "privilegio_general",
-              "privilegio_especial",
-              "contra_masa"
+              "privilegio_especial"
             ],
             "direction": "inverso_prelacion",
             "within_class": "antiguedad",
