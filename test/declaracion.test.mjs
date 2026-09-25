@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generarDeclaracion, determinarFaseDeclaracion } from '../src/index.mjs';
-import { ejemplo, copia } from './helpers.mjs';
+import { ejemplo, copia, knowledge } from './helpers.mjs';
 
 const base = ejemplo('10-declaracion-desde-solicitud');
 
@@ -33,7 +33,7 @@ test('declaración: documentos del art. 7 incompletos → borrador con advertenc
   e.solicitud.documentos.poder = false;
   e.solicitud.documentos.memoria = false;
   e.solicitud.documentos.inventario = false;
-  const f = determinarFaseDeclaracion(e);
+  const f = determinarFaseDeclaracion(e, { knowledge });
   assert.equal(f.estado, 'listo');
   const r = generarDeclaracion(e);
   assert.equal(r.estado, 'borrador_no_ratificado');
@@ -53,7 +53,7 @@ test('declaración: sin nombre del juez → genera con hueco y advertencia', () 
 test('declaración: plan de pagos, concurso necesario u ordinario → fuera de alcance', () => {
   for (const cambio of [(e) => { e.solicitud.plan_pagos = true; }, (e) => { e.solicitud.solicitante = 'acreedor'; }, (e) => { e.solicitud.tipo = 'concurso_ordinario'; }]) {
     const e = copia(base); cambio(e);
-    assert.equal(determinarFaseDeclaracion(e).estado, 'fuera_de_alcance');
+    assert.equal(determinarFaseDeclaracion(e, { knowledge }).estado, 'fuera_de_alcance');
   }
 });
 
