@@ -17,37 +17,33 @@ export function catalogoSupuestos37Bis(knowledge) {
 
 export function validarExpedienteDeclaracion(exp, { knowledge } = {}) {
   const e = [];
-  const push = (r, m) => e.push(`${r}: ${m}`);
+  const push = (ruta, msg) => e.push(`${ruta}: ${msg}`);
   if (!knowledge) return ['knowledge: falta el Knowledge Runtime.'];
   if (!obj(exp)) return ['expediente: debe ser un objeto JSON.'];
   const clasesCredito = creditClassIds(knowledge);
-  for (const k of ['tribunal', 'seccion', 'localidad']) if (!text(exp.organo?.[k])) push(`organo.${k}`, 'falta.');
-  if (!Number.isInteger(exp.organo?.plaza) || exp.organo.plaza < 1) push('organo.plaza', 'debe ser un entero ≥ 1.');
-  for (const k of ['numero', 'nig']) if (!text(exp.procedimiento?.[k])) push(`procedimiento.${k}`, 'falta.');
-  if (!['Magistrado', 'Magistrada', 'Juez', 'Jueza'].includes(text(exp.juez?.cargo))) push('juez.cargo', 'debe ser Magistrado, Magistrada, Juez o Jueza.');
+
   if (!fechaValida(exp.fecha_resolucion)) push('fecha_resolucion', 'fecha ISO (AAAA-MM-DD) inválida.');
-  for (const k of ['nombre', 'nif', 'domicilio']) if (!text(exp.deudor?.[k])) push(`deudor.${k}`, 'falta.');
-  if (!['persona_natural', 'persona_juridica'].includes(text(exp.deudor?.tipo))) push('deudor.tipo', 'debe ser persona_natural o persona_juridica.');
+  const cargo = text(exp.juez?.cargo);
+  if (cargo && !['Magistrado', 'Magistrada', 'Juez', 'Jueza'].includes(cargo)) push('juez.cargo', 'cargo no reconocido.');
+  if (!['persona_natural', 'persona_juridica'].includes(text(exp.deudor?.tipo))) push('deudor.tipo', 'tipo de deudor no reconocido.');
+
   const s = exp.solicitud;
   if (!obj(s)) push('solicitud', 'falta.');
   else {
-    if (!fechaValida(s.fecha)) push('solicitud.fecha', 'fecha inválida.');
-    if (!['actual', 'inminente'].includes(s.insolvencia)) push('solicitud.insolvencia', 'debe ser actual o inminente.');
-    if (typeof s.pide_epi !== 'boolean') push('solicitud.pide_epi', 'debe ser true o false.');
-    if (!obj(s.documentos)) push('solicitud.documentos', 'falta.');
+    if (text(s.fecha) && !fechaValida(s.fecha)) push('solicitud.fecha', 'fecha inválida.');
+    if (text(s.insolvencia) && !['actual', 'inminente'].includes(s.insolvencia)) push('solicitud.insolvencia', 'valor no reconocido.');
     if (fechaValida(s.fecha) && fechaValida(exp.fecha_resolucion) && exp.fecha_resolucion < s.fecha) push('fecha_resolucion', 'anterior a la solicitud.');
   }
+
   const ids = new Set();
   const creditos = arr(exp.creditos);
-  if (!creditos.length) push('creditos', 'la relación de acreedores es obligatoria.');
-  creditos.forEach((c, i) => {
-    const r = `creditos[${i}]`;
-    if (!text(c?.id) || ids.has(c.id)) push(`${r}.id`, 'falta o está duplicado.'); else ids.add(c.id);
-    if (!text(c?.acreedor)) push(`${r}.acreedor`, 'falta.');
-    if (!text(c?.concepto)) push(`${r}.concepto`, 'falta.');
-    const imp = aCentimos(c?.importe);
-    if (imp == null || imp <= 0) push(`${r}.importe`, 'debe ser un número positivo.');
-    if (!clasesCredito.includes(text(c?.clase))) push(`${r}.clase`, `no reconocida (${c?.clase}).`);
+  if (!creditos.length) push('creditos', 'no hay ningún crédito estructurado con el que expresar el pasivo.');
+  creditos.forEach((credito, i) => {
+    const ruta = `creditos[${i}]`;
+    if (!text(credito?.id) || ids.has(credito.id)) push(`${ruta}.id`, 'falta o está duplicado.'); else ids.add(credito.id);
+    const imp = aCentimos(credito?.importe);
+    if (imp == null || imp <= 0) push(`${ruta}.importe`, 'debe ser un número positivo.');
+    if (!clasesCredito.includes(text(credito?.clase))) push(`${ruta}.clase`, 'clase no reconocida.');
   });
   return e;
 }
@@ -58,13 +54,25 @@ export function determinarFaseDeclaracion(exp, { knowledge } = {}) {
 }
 
 function advertenciasBorradorDeclaracion(exp, knowledge) {
-  return evaluateWorkflowWarnings(knowledge, 'declaracion', exp);
+  const warnings = [...evaluateWorkflowWarnings(knowledge, 'declaracion', exp)];
+  const formales = [];
+  if (!text(exp.procedimiento?.numero)) formales.push('número de procedimiento');
+  if (!text(exp.procedimiento?.nig)) formales.push('NIG');
+  if (!text(exp.organo?.localidad)) formales.push('localidad del órgano');
+  if (!text(exp.juez?.nombre)) formales.push('nombre del juez/a');
+  if (!text(exp.deudor?.nombre)) formales.push('nombre del deudor');
+  if (!text(exp.deudor?.nif)) formales.push('NIF/NIE');
+  if (!text(exp.deudor?.domicilio)) formales.push('domicilio');
+  if (formales.length) warnings.push(`Datos formales pendientes: ${formales.join(', ')}. El borrador se genera igualmente.`);
+  if (!fechaValida(exp.solicitud?.fecha)) warnings.push('No consta una fecha válida de la solicitud; el antecedente la mostrará como no determinada.');
+  if (!['actual', 'inminente'].includes(exp.solicitud?.insolvencia)) warnings.push('No consta si la insolvencia alegada es actual o inminente; no se infiere automáticamente.');
+  return [...new Set(warnings)];
 }
 
 function filasPasivo(creditos) {
   const filas = arr(creditos).map((c) => {
     const importe = aCentimos(c.importe);
-    return Object.freeze({ id: c.id, acreedor: text(c.acreedor), concepto: text(c.concepto), clase: c.clase, importe, exonerado: 0, no_exonerado: importe, vencimiento: c.vencimiento ?? null, motivo: null, valor_garantia: null });
+    return Object.freeze({ id: c.id, acreedor: text(c.acreedor) || 'Acreedor no identificado', concepto: text(c.concepto) || 'Crédito no identificado', clase: c.clase, importe, exonerado: 0, no_exonerado: importe, vencimiento: c.vencimiento ?? null, motivo: null, valor_garantia: null });
   }).sort((a, b) => a.id.localeCompare(b.id, 'es', { numeric: true }));
   const pasivo = filas.reduce((s, c) => s + c.importe, 0);
   return { filas, totales: { pasivo, exonerado: 0, no_exonerado: pasivo } };
@@ -93,11 +101,11 @@ export function construirIRDeclaracion(exp, pack, knowledge) {
     totales,
     credito_publico: {},
     variables: {
-      deudor: text(exp.deudor.nombre),
-      nif: text(exp.deudor.nif),
-      domicilio: text(exp.deudor.domicilio),
-      fecha_solicitud: fechaLarga(exp.solicitud.fecha),
-      insolvencia: exp.solicitud.insolvencia,
+      deudor: text(exp.deudor?.nombre) || '____________________',
+      nif: text(exp.deudor?.nif) || '____________________',
+      domicilio: text(exp.deudor?.domicilio) || '____________________',
+      fecha_solicitud: fechaValida(exp.solicitud?.fecha) ? fechaLarga(exp.solicitud.fecha) : 'fecha no determinada',
+      insolvencia: ['actual', 'inminente'].includes(exp.solicitud?.insolvencia) ? exp.solicitud.insolvencia : 'alegada',
       supuesto,
       supuesto_letra: supuestoCfg?.codigo,
       supuesto_texto: supuestoCfg?.texto,
