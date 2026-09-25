@@ -11,8 +11,14 @@ test('declaración: genera el borrador y recoge todo el pasivo', () => {
   assert.equal(r.controles.ok, true);
   assert.match(r.texto, /Declaro en concurso voluntario sin masa a PERSONA DEUDORA EJEMPLO, con NIF 00000000T/);
   assert.match(r.texto, /asciende a 24\.790,71 €/);
-  assert.match(r.texto, /37 bis\.1\.1\.º/);
-  assert.match(r.texto, /No se nombra administración concursal/);
+  assert.match(r.texto, /37 bis\.a\) TRLC/);
+  assert.match(r.texto, /Boletín Oficial del Estado/);
+  assert.match(r.texto, /HAGO CONSTAR/);
+  const tabla = r.documento.find((e) => e.tipo === 'tabla' && e.clase === 'pasivo');
+  assert.ok(tabla);
+  assert.equal(tabla.lineas.length, 5);
+  assert.equal(tabla.total, '24.790,71 €');
+  assert.deepEqual(r.documento.filter((e) => e.tipo === 'dispositivo').map((e) => e.numero), [1, 2, 3, 4]);
 });
 
 test('declaración: sin decisión del juez no se redacta', () => {

@@ -61,10 +61,9 @@ export function redactar(ir) {
     bloques.forEach((b, i) => {
       const cuerpo = sustituir(b.texto, ir.variables, b.id);
       if (seccion === 'dispositiva') {
-        doc.push({ tipo: 'parrafo', texto: `${i + 1}.º ${cuerpo}`, bloque: b.id });
+        doc.push({ tipo: 'dispositivo', numero: i + 1, texto: cuerpo, bloque: b.id });
       } else {
-        const titulo = b.titulo ? ` ${b.titulo}.` : '';
-        doc.push({ tipo: 'parrafo', texto: `${ordinal(i)}.${titulo} ${cuerpo}`, bloque: b.id });
+        doc.push({ tipo: 'apartado', numero: ordinal(i), titulo: b.titulo ?? null, texto: cuerpo, seccion, bloque: b.id });
       }
       if (b.tabla) doc.push({ tipo: 'tabla', clase: b.tabla, ...filasTabla(ir, b.tabla) });
     });
@@ -86,6 +85,8 @@ export function aTextoPlano(doc) {
       for (const l of el.lineas) out.push(`   ${l.n}. ${l.acreedor} — ${l.concepto}: ${l.importe}${l.nota ? ` — ${l.nota}` : ''}`);
       out.push(`   Total: ${el.total}`);
     } else if (el.tipo === 'titulo') out.push('', el.texto, '');
+    else if (el.tipo === 'apartado') out.push(`${el.numero}.${el.titulo ? ` ${el.titulo}.` : ''} ${el.texto}`);
+    else if (el.tipo === 'dispositivo') out.push(`${el.numero}.º ${el.texto}`);
     else out.push(el.texto);
   }
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';

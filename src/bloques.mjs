@@ -6,7 +6,7 @@ export const VARIABLES_PERMITIDAS = Object.freeze([
   'fecha_declaracion', 'fecha_solicitud', 'deudor',
   'total_pasivo', 'total_exonerado', 'total_no_exonerado', 'detalle_credito_publico',
   // auto de declaración
-  'nif', 'domicilio', 'insolvencia', 'supuesto', 'supuesto_texto'
+  'nif', 'domicilio', 'insolvencia', 'supuesto', 'supuesto_letra', 'supuesto_texto', 'numero_acreedores'
 ]);
 
 const SECCIONES = ['antecedentes', 'fundamentos', 'dispositiva', 'pie'];
