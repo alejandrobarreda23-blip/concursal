@@ -7,7 +7,7 @@ const valor = (campo) => (campo == null ? null : campo.valor);
 
 // Datos del órgano y del procedimiento que NO están en la solicitud (los pone el juzgado).
 export const DATOS_JUZGADO_VACIOS = Object.freeze({
-  organo: { tribunal: '', seccion: 'Sección de lo Mercantil', plaza: 1, denominacion_historica: '', localidad: '' },
+  organo: { tribunal: 'Tribunal de Instancia', seccion: 'Sección de lo Mercantil', plaza: 1, denominacion_historica: '', localidad: '' },
   procedimiento: { numero: '', nig: '' },
   juez: { nombre: '', cargo: 'Magistrado' },
   fecha_resolucion: '',
@@ -59,7 +59,9 @@ export function lecturaAExpedienteDeclaracion(lectura, datosJuzgado = DATOS_JUZG
       concepto: a.concepto,
       importe: centimosAEuros(a.importe),
       clase: a.clase,
-      ...(a.clase === 'garantia_real' ? { valor_garantia: null } : {})
+      ...(a.rango_concursal ? { rango_concursal: a.rango_concursal } : {}),
+      ...(a.fecha_origen ? { fecha_origen: a.fecha_origen } : {}),
+      ...(a.clase === 'garantia_real' ? { valor_garantia: a.valor_garantia ?? null } : {})
     })),
     decision_judicial: {}
   };
