@@ -49,8 +49,8 @@ export function validarExpediente(exp, { knowledge } = {}) {
       if (vg == null || vg < 0) push(e, `${r}.valor_garantia`, 'obligatorio en créditos con garantía real.');
     }
     if (c.vencimiento != null && !['vencido', 'no_vencido'].includes(c.vencimiento)) push(e, `${r}.vencimiento`, 'debe ser vencido o no_vencido.');
-    if (c.rango_concursal != null && !['privilegio_especial', 'privilegio_general', 'ordinario', 'subordinado', 'contra_masa'].includes(c.rango_concursal)) push(e, `${r}.rango_concursal`, 'clase concursal no reconocida.');
-    if (c.fecha_origen != null && !fechaValida(c.fecha_origen)) push(e, `${r}.fecha_origen`, 'fecha inválida.');
+    if (text(c.rango_concursal) && !['privilegio_especial', 'privilegio_general', 'ordinario', 'subordinado', 'contra_masa'].includes(c.rango_concursal)) push(e, `${r}.rango_concursal`, 'clase concursal no reconocida.');
+    if (text(c.fecha_origen) && !fechaValida(c.fecha_origen)) push(e, `${r}.fecha_origen`, 'fecha inválida.');
   });
 
   const f0 = t?.auto_declaracion_sin_masa?.fecha, f1 = t?.solicitud_epi?.fecha, f2 = exp.fecha_resolucion;
