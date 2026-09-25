@@ -21,3 +21,4 @@ export { KNOWLEDGE_CONCURSAL_CSM };
 export * from './motor.mjs';
 export { validarExpedienteDeclaracion, determinarFaseDeclaracion, catalogoSupuestos37Bis } from './declaracion.mjs';
 export * from './core/knowledge/index.mjs';
+export * from './core/human-decision-boundary.mjs';
