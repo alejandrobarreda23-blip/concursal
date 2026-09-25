@@ -11,22 +11,11 @@ export function validarExpediente(exp, { knowledge } = {}) {
   if (!obj(exp)) return ['expediente: debe ser un objeto JSON.'];
   const clasesCredito = creditClassIds(knowledge);
 
-  const o = exp.organo;
-  if (!obj(o)) push(e, 'organo', 'falta.');
-  else {
-    for (const k of ['tribunal', 'seccion', 'localidad']) if (!text(o[k])) push(e, `organo.${k}`, 'falta.');
-    if (!Number.isInteger(o.plaza) || o.plaza < 1) push(e, 'organo.plaza', 'debe ser un entero ≥ 1.');
-  }
-  const p = exp.procedimiento;
-  if (!obj(p)) push(e, 'procedimiento', 'falta.');
-  else for (const k of ['numero', 'nig']) if (!text(p[k])) push(e, `procedimiento.${k}`, 'falta.');
-
-  if (!obj(exp.juez) || !text(exp.juez.nombre)) push(e, 'juez.nombre', 'falta.');
-  if (!['Magistrado', 'Magistrada', 'Juez', 'Jueza'].includes(text(exp.juez?.cargo))) push(e, 'juez.cargo', 'debe ser Magistrado, Magistrada, Juez o Jueza.');
+  const cargo = text(exp.juez?.cargo);
+  if (cargo && !['Magistrado', 'Magistrada', 'Juez', 'Jueza'].includes(cargo)) push(e, 'juez.cargo', 'cargo no reconocido.');
   if (!fechaValida(exp.fecha_resolucion)) push(e, 'fecha_resolucion', 'fecha ISO (AAAA-MM-DD) inválida.');
 
   const d = exp.deudor;
-  if (!obj(d) || !text(d.nombre)) push(e, 'deudor.nombre', 'falta.');
   if (!['persona_natural', 'persona_juridica'].includes(text(d?.tipo))) push(e, 'deudor.tipo', 'debe ser persona_natural o persona_juridica.');
 
   const t = exp.tramite;
@@ -52,8 +41,6 @@ export function validarExpediente(exp, { knowledge } = {}) {
     if (!text(c.id)) push(e, `${r}.id`, 'falta.');
     else if (ids.has(c.id)) push(e, `${r}.id`, `duplicado (${c.id}).`);
     else ids.add(c.id);
-    if (!text(c.acreedor)) push(e, `${r}.acreedor`, 'falta.');
-    if (!text(c.concepto)) push(e, `${r}.concepto`, 'falta.');
     const imp = aCentimos(c.importe);
     if (imp == null || imp <= 0) push(e, `${r}.importe`, 'debe ser un número positivo.');
     if (!clasesCredito.includes(text(c.clase))) push(e, `${r}.clase`, `no reconocida (${c.clase}). Valores: ${clasesCredito.join(', ')}.`);
@@ -62,6 +49,8 @@ export function validarExpediente(exp, { knowledge } = {}) {
       if (vg == null || vg < 0) push(e, `${r}.valor_garantia`, 'obligatorio en créditos con garantía real.');
     }
     if (c.vencimiento != null && !['vencido', 'no_vencido'].includes(c.vencimiento)) push(e, `${r}.vencimiento`, 'debe ser vencido o no_vencido.');
+    if (c.rango_concursal != null && !['privilegio_especial', 'privilegio_general', 'ordinario', 'subordinado', 'contra_masa'].includes(c.rango_concursal)) push(e, `${r}.rango_concursal`, 'clase concursal no reconocida.');
+    if (c.fecha_origen != null && !fechaValida(c.fecha_origen)) push(e, `${r}.fecha_origen`, 'fecha inválida.');
   });
 
   const f0 = t?.auto_declaracion_sin_masa?.fecha, f1 = t?.solicitud_epi?.fecha, f2 = exp.fecha_resolucion;
@@ -70,4 +59,19 @@ export function validarExpediente(exp, { knowledge } = {}) {
   if (fechaValida(f1) && fechaValida(f2) && f2 < f1) push(e, 'fecha_resolucion', 'anterior a la solicitud de exoneración.');
 
   return e;
+}
+
+
+export function advertenciasFormalesExpediente(exp) {
+  const warnings = [];
+  const formales = [];
+  if (!text(exp?.procedimiento?.numero)) formales.push('número de procedimiento');
+  if (!text(exp?.procedimiento?.nig)) formales.push('NIG');
+  if (!text(exp?.organo?.localidad)) formales.push('localidad del órgano');
+  if (!text(exp?.juez?.nombre)) formales.push('nombre del juez/a');
+  if (!text(exp?.deudor?.nombre)) formales.push('nombre del deudor');
+  if (formales.length) warnings.push(`Datos formales pendientes: ${formales.join(', ')}. El borrador se genera igualmente.`);
+  const incompletos = arr(exp?.creditos).filter((credito) => !text(credito?.acreedor) || !text(credito?.concepto)).length;
+  if (incompletos) warnings.push(`${incompletos} crédito(s) tienen acreedor o concepto sin identificar; revise la tabla antes de firmar.`);
+  return warnings;
 }
