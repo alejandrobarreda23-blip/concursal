@@ -31,8 +31,8 @@
     "test/golden/04-garantia-real-y-publico.txt": "704a7b517be7ec7e281a8568296478f34cd4256634205f46b9f231a0dd4857f4",
     "test/golden/10-declaracion-desde-solicitud.json": "899c3b5da716b9598329af7823a64a5f7f5696725d4f631fa6db5455309cf4b9",
     "test/golden/10-declaracion-desde-solicitud.txt": "45dfe8878dc20255ecaa1601ae08149df59c5d89cc5ed4d037206a5091195c02",
-    "web/app.mjs": "7bea998c10a10f464520f3e6758920ee606646be54c8eaf6407c0d81b15a23e4",
-    "web/estilos.css": "a25442748c46ddd38fe54618ac7df3fd2f95f0ae98f1f0a47625793e0ab87313",
+    "web/app.mjs": "b9b978d0b1c1e3ac48b1c73fbebdc69c5cfa7b47fe6919b355afb3f429802812",
+    "web/estilos.css": "588efc1a65c32aae03dfe1ca3715878e13b699d855c503fec266c529741f3140",
     "web/index.html": "8ba7d56fa266009325f45bbbf5e1e5d5ad092026c3e3695309b0b99ab7dd9711",
     "web/case-store.mjs": "f36adfeb88f47f23a9a1ab14042a73320ad2a400ab79a2490a6114d6cb3619e3"
   }
