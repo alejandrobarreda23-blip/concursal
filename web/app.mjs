@@ -12,7 +12,8 @@ import { prepareKnowledgeRuntime } from '/src/core/knowledge/runtime.mjs';
 import { createKnowledgeRegistry } from '/src/core/knowledge/registry.mjs';
 import { creditClassIds } from '/src/core/knowledge/credit-engine.mjs';
 import { adaptPersonaFisicaKnowledgeSource, personaFisicaKnowledgeSummary } from '/src/adapters/concursal/knowledge-persona-fisica.mjs';
-import { documentoATextoMarcado, fusionarLecturaConIA } from '/src/adapters/concursal/ai-extraction.mjs';
+import { fusionarLecturaConIA } from '/src/adapters/concursal/ai-extraction.mjs';
+import { anonimizarDocumentoConcursal } from '/src/adapters/concursal/anonymize-document.mjs';
 import { listProcedimientos, getProcedimiento, putProcedimiento, deleteProcedimiento, findBySourceHash } from '/web/case-store.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
@@ -319,11 +320,15 @@ $('fichero').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-async function extraerSolicitudConIA(doc) {
+async function extraerSolicitudConIA(doc, determinista) {
+  const privacy = anonimizarDocumentoConcursal(doc, determinista);
   const response = await fetch('/.netlify/functions/extract-solicitud', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ document_text: documentoATextoMarcado(doc) })
+    body: JSON.stringify({
+      document_text: privacy.text,
+      privacy: privacy.manifest
+    })
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -331,7 +336,11 @@ async function extraerSolicitudConIA(doc) {
     error.code = payload?.error?.code || 'AI_EXTRACTION_ERROR';
     throw error;
   }
-  return payload;
+  return {
+    ...payload,
+    proposal: privacy.restore(payload.proposal),
+    privacy: privacy.manifest
+  };
 }
 
 async function leerNuevaSolicitud(fichero) {
@@ -346,11 +355,16 @@ async function leerNuevaSolicitud(fichero) {
     let extractionError = null;
     const useAi = $('ai-extraction-toggle')?.checked === true;
     if (useAi) {
-      status.innerHTML = '<p class="nota loading-note">Lectura local terminada · estructurando los datos con IA…</p>';
+      status.innerHTML = '<p class="nota loading-note">Lectura local terminada · anonimizando en este navegador antes de usar IA…</p>';
       try {
-        const assisted = await extraerSolicitudConIA(texto);
+        const assisted = await extraerSolicitudConIA(texto, determinista);
         lectura = fusionarLecturaConIA(determinista, assisted.proposal, { provider: assisted.provider, model: assisted.model });
-        extractionMode = 'hybrid_ai';
+        extractionMode = 'hybrid_ai_anonymized';
+        lectura = plain(lectura);
+        lectura.extractor = {
+          ...(lectura.extractor || {}),
+          privacy: assisted.privacy
+        };
       } catch (error) {
         extractionError = { code: error.code || 'AI_EXTRACTION_ERROR', message: error.message };
         status.innerHTML = `<ul class="alertas"><li class="aviso">La IA no está disponible: se continúa con la lectura determinista. ${esc(error.message)}</li></ul>`;
@@ -376,7 +390,7 @@ async function leerNuevaSolicitud(fichero) {
       conclusion: null,
       resultadoDeclaracion: null,
       resultadoConclusion: null,
-      activity: [actividad('upload', 'Solicitud incorporada', `${fichero.name} · ${extractionMode === 'hybrid_ai' ? 'extracción híbrida IA + lector local' : 'lectura determinista'}`)]
+      activity: [actividad('upload', 'Solicitud incorporada', `${fichero.name} · ${extractionMode === 'hybrid_ai_anonymized' ? 'extracción híbrida con anonimización local' : 'lectura determinista'}`)]
     };
     await putProcedimiento(record);
     status.innerHTML = '';
