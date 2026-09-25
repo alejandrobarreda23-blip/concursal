@@ -2,7 +2,7 @@
 import { createPseudonymVault, detectDirectIdentifiers, PSEUDONYMIZATION_VERSION } from '../../core/extraction/pseudonymization.mjs';
 import { documentoATextoMarcado } from './ai-extraction.mjs';
 
-const PERSONA_EXCLUSIONS = /\b(?:Banco|Banc|Financiera|Caixa|Agencia|Tesorer[ií]a|Ayuntamiento|Ajuntament|Juzgado|Tribunal|Secci[oó]n|Registro|Bolet[ií]n|Estado|Seguridad\s+Social|Administraci[oó]n|Hacienda|Mercantil|Sociedad|Comunidad|Provincia|Ministerio|Direcci[oó]n\s+General)\b/i;
+const PERSONA_EXCLUSIONS = /\b(?:Banco|Banc|Financiera|Caixa|Agencia|Tesorer[ií]a|Ayuntamiento|Ajuntament|Juzgado|Tribunal|Secci[oó]n|Registro|Bolet[ií]n|Estado|Seguridad\s+Social|Administraci[oó]n|Hacienda|Mercantil|Sociedad|Comunidad|Provincia|Ministerio|Direcci[oó]n\s+General|Concurso|Insolvencia|Exoneraci[oó]n|Pasivo|Activo|Acreedores|Antecedentes|Fundamentos)\b/i;
 const ENTITY_MARKERS = /\b(?:S\.?\s*A\.?|S\.?\s*L\.?|S\.?\s*L\.?\s*U\.?|S\.?\s*C\.?|S\.?\s*Coop\.?|AIE|UTE|Fundaci[oó]n|Asociaci[oó]n)\b/i;
 
 const rawValue = (field) => field && typeof field === 'object' && 'valor' in field ? field.valor : null;
