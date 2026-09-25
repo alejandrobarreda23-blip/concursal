@@ -152,3 +152,28 @@ La lectura del PDF sigue teniendo un extractor local determinista como fallback.
 7. Ninguna salida de extracción puede escribir `decision_judicial` y todo resultado queda marcado como `review_required`.
 
 La clave del proveedor vive exclusivamente en variables de entorno de Netlify. Si falla la anonimización, **no se realiza ninguna llamada al servidor**. Si no existe `OPENAI_API_KEY` o el proveedor no está disponible, la aplicación continúa con el lector determinista sin bloquear el expediente. El modo IA nunca dispone de una opción para enviar el texto original sin anonimizar.
+
+
+## Asistencias IA contextuales
+
+La interfaz distingue tres usos separados de IA, todos opcionales y siempre subordinados a revisión humana:
+
+1. **IA 1 · Extracción anonimizada**: interpreta el lenguaje libre de la solicitud para proponer datos estructurados. Antes de cualquier envío se aplica pseudonimización local de alta cobertura y doble control de fugas.
+2. **IA 2 · Auditor documental semántico**: trabaja sobre el texto ya pseudonimizado guardado en el expediente y busca contradicciones internas, omisiones semánticas, cifras incompatibles y extremos que merecen revisión. No puede decidir cuestiones jurídicas.
+3. **IA 3 · Mapa de cuestiones jurídicas**: recibe exclusivamente un snapshot desidentificado del expediente y un subconjunto cerrado del Knowledge. Su salida son cuestiones, reglas potencialmente relevantes y hechos faltantes; no propone el sentido de la resolución.
+
+El workspace incorpora una pestaña **Análisis** para estas funciones. Si no existe `OPENAI_API_KEY`, las herramientas se muestran pero responden como no configuradas y el flujo determinista sigue operativo.
+
+## Knowledge inspeccionable
+
+La vista **Knowledge** ya no es un cuadro estadístico. Permite buscar y abrir el contenido de:
+
+- reglas;
+- normas;
+- fases;
+- resoluciones;
+- fundamentos tipo;
+- jurisprudencia;
+- huecos pendientes de criterio/verificación.
+
+Cada elemento muestra metadatos, contenido y estructura técnica. Desde un expediente, las reglas del módulo relevante pueden abrirse directamente en el inspector.
