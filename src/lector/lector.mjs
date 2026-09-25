@@ -24,6 +24,22 @@ function importeACentimos(txt) {
   return m ? parseInt(m[1].replace(/\./g, ''), 10) * 100 + parseInt(m[2] || '00', 10) : null;
 }
 
+function fechaCortaAIso(txt) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(String(txt || '').trim());
+  if (!m) return null;
+  const year = m[3].length === 2 ? Number(m[3]) + 2000 : Number(m[3]);
+  return `${year}-${String(Number(m[2])).padStart(2, '0')}-${String(Number(m[1])).padStart(2, '0')}`;
+}
+
+function rangoConcursalExplicito(texto) {
+  const n = norm(texto);
+  if (/\bsubordinad[oa]s?\b/.test(n)) return 'subordinado';
+  if (/\bprivilegio\s+especial\b/.test(n)) return 'privilegio_especial';
+  if (/\bprivilegio\s+general\b/.test(n)) return 'privilegio_general';
+  if (/\bordinari[oa]s?\b/.test(n)) return 'ordinario';
+  return null;
+}
+
 // Texto corrido con mapa de posiciones → (página, línea), para citar la fuente de cada dato.
 function indexar(doc) {
   const lineas = [];
@@ -169,6 +185,9 @@ function filaAcreedor(l) {
   if (!importe) return null;
 
   let resto = (l.texto.slice(0, ultimo.index) + ' ' + l.texto.slice(ultimo.index + ultimo[0].length)).trim();
+  const fechaBruta = RE_FECHA.exec(resto)?.[0] || null;
+  const fecha_origen = fechaCortaAIso(fechaBruta);
+  const rango_concursal = rangoConcursalExplicito(l.texto);
   resto = resto.replace(RE_EMAIL, ' ').replace(RE_FECHA, ' ');
   const nifBruto = RE_NIF.exec(resto)?.[0] || null;
   const nif = nifBruto ? nifBruto.replace(/[-\s]/g, '').toUpperCase() : null;
@@ -195,7 +214,12 @@ function filaAcreedor(l) {
   }
   if (!acreedor || /^total(?:\s|$)/i.test(acreedor)) return null;
   const { clase, regla } = claseCredito(acreedor, concepto, garantia);
-  return { acreedor, nif, concepto: concepto || 'Sin concepto indicado', garantia, importe, clase, regla_clase: regla };
+  return {
+    acreedor, nif, concepto: concepto || 'Sin concepto indicado', garantia, importe, clase,
+    ...(rango_concursal ? { rango_concursal } : {}),
+    ...(fecha_origen ? { fecha_origen } : {}),
+    regla_clase: regla
+  };
 }
 
 function extraerAcreedores(idx) {
