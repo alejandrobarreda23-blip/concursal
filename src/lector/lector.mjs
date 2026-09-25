@@ -12,7 +12,7 @@ import {
   INICIO_ACREEDORES, FIN_ACREEDORES, RE_IMPORTE, RE_NIF, RE_EMAIL, RE_FECHA, GARANTIAS, FORMA_JURIDICA
 } from './reglas.mjs';
 
-export const LECTOR_VERSION = 'lector/0.1.0';
+export const LECTOR_VERSION = 'lector/0.2.0';
 const MESES = { enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6, julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12 };
 
 export const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -20,8 +20,8 @@ const limpiar = (s) => String(s).replace(/\s*\|\s*/g, ' ').replace(/\s+/g, ' ').
 const tituloPersona = /^(?:don|dona|doña|d\.|dª|d\.ª|sr\.|sra\.)\s+/i;
 
 function importeACentimos(txt) {
-  const m = /(\d{1,3}(?:\.\d{3})*|\d+),(\d{2})/.exec(txt);
-  return m ? parseInt(m[1].replace(/\./g, ''), 10) * 100 + parseInt(m[2], 10) : null;
+  const m = /(\d{1,3}(?:\.\d{3})*|\d+)(?:,(\d{2}))?/.exec(String(txt));
+  return m ? parseInt(m[1].replace(/\./g, ''), 10) * 100 + parseInt(m[2] || '00', 10) : null;
 }
 
 // Texto corrido con mapa de posiciones → (página, línea), para citar la fuente de cada dato.
@@ -94,15 +94,17 @@ function extraerCampos(idx) {
   c.deudor_nombre = primero(
     buscar(idx, 'DEUDOR.nombre.formulario', /nombre y apellidos\s*:\s*([^\n|]+?)(?=\s+nif\b|\s+\d+\.\s|$)/),
     buscar(idx, 'DEUDOR.nombre.representacion', /representaci[oó]n de\s+((?:don|doña|dona|d\.|dª)\s+[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ .'-]+?)\s*,/, 1, (s) => limpiar(s).replace(tituloPersona, '')),
-    buscar(idx, 'DEUDOR.nombre.en_nombre', /en nombre de\s+((?:don|doña|dona|d\.|dª)\s+[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ .'-]+?)\s*,/, 1, (s) => limpiar(s).replace(tituloPersona, ''))
+    buscar(idx, 'DEUDOR.nombre.en_nombre', /en nombre de\s+((?:don|doña|dona|d\.|dª)\s+[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ .'-]+?)\s*,/, 1, (s) => limpiar(s).replace(tituloPersona, '')),
+    buscar(idx, 'DEUDOR.nombre.compareciente', /(?:^|\s)((?:don|doña|dona|d\.|dª|d\.ª)\s+[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ .'-]+?)(?=,\s*(?:mayor de edad|con\s+(?:dni|nie|nif)\b))/, 1, (s) => limpiar(s).replace(tituloPersona, ''))
   );
   c.deudor_nif = primero(
-    buscar(idx, 'DEUDOR.nif.etiqueta', /\b(?:dni|nie|nif)\s*(?:n\.?º|núm\.?|:)?\s*([0-9XYZ][0-9]{7}[A-Z])\b/, 1, (s) => s.toUpperCase())
+    buscar(idx, 'DEUDOR.nif.etiqueta', /\b(?:dni|nie|nif)\s*(?:fictici[oa]\s*)?(?:n\.?º|núm\.?|:)?\s*((?:[0-9]{8}|[XYZ][0-9]{7}|[ABCDEFGHJNPQRSUVW][0-9]{7})[-\s]?[0-9A-Z])\b/, 1, (s) => s.replace(/[-\s]/g, '').toUpperCase())
   );
   c.deudor_domicilio = primero(
     buscar(idx, 'DEUDOR.domicilio.formulario', /domicilio\s*:\s*([^\n]+?\))/),
     buscar(idx, 'DEUDOR.domicilio.escrito', /domicilio en\s+(.+?\))\s*,/),
-    buscar(idx, 'DEUDOR.domicilio.domiciliado', /domiciliad[oa] en\s+([^,]+)/)
+    buscar(idx, 'DEUDOR.domicilio.domiciliado', /domiciliad[oa] en\s+([^,]+)/),
+    buscar(idx, 'DEUDOR.domicilio.efectos', /domicilio(?:\s+a efectos(?:\s+de\s+[^,]{1,100}?)?)?\s+en\s+(.+?)(?=,\s*(?:comparece|seg[uú]n|formula|ante\b|y,\s*como))/)
   );
   c.deudor_localidad = primero(
     buscar(idx, 'DEUDOR.localidad.cp', /\b\d{5}\s+([A-ZÁÉÍÓÚÑÜ][\wÁÉÍÓÚÑÜáéíóúñüà'·-]+(?:\s+(?:de|del|la|les|el)\s+[\wÁÉÍÓÚÑÜáéíóúñüà'·-]+)*)/),
@@ -126,11 +128,13 @@ function extraerCampos(idx) {
   c.fecha_escrito = fechaEscrito(idx);
   c.pasivo_declarado = primero(
     buscar(idx, 'IMPORTES.pasivo.formulario', /importe global de las deudas\s*:\s*([\d.]+,\d{2})/, 1, importeACentimos),
-    buscar(idx, 'IMPORTES.pasivo.escrito', /importe global de sus deudas[^0-9]{0,40}([\d.]+,\d{2})/, 1, importeACentimos)
+    buscar(idx, 'IMPORTES.pasivo.escrito', /importe global de sus deudas[^0-9]{0,40}([\d.]+,\d{2})/, 1, importeACentimos),
+    buscar(idx, 'IMPORTES.pasivo.total_relacion', /relaci[oó]n(?:\s+simplificada)?\s+de\s+acreedores.{0,4000}?\btotal[^0-9]{0,20}([\d.]+(?:,\d{2})?)\s*(?:€|euros?\b|eur\b)/, 1, importeACentimos)
   );
   c.activo_declarado = primero(
     buscar(idx, 'IMPORTES.activo.formulario', /valor de los bienes y derechos\s*:\s*([\d.]+,\d{2})/, 1, importeACentimos),
-    buscar(idx, 'IMPORTES.activo.escrito', /valor total de sus bienes y derechos[^0-9]{0,40}([\d.]+,\d{2})/, 1, importeACentimos)
+    buscar(idx, 'IMPORTES.activo.escrito', /valor total de sus bienes y derechos[^0-9]{0,40}([\d.]+,\d{2})/, 1, importeACentimos),
+    buscar(idx, 'IMPORTES.activo.saldo_unico', /saldo bancario(?:\s+aproximado)?\s+de\s+([\d.]+(?:,\d{2})?)\s*(?:€|euros?\b|eur\b)(?=.{0,500}\b(?:dispone\s+[uú]nicamente|no consta ning[uú]n otro activo))/, 1, importeACentimos)
   );
   c.numero_acreedores = buscar(idx, 'ACREEDORES.numero', /n[uú]mero de acreedores\s*:\s*(\d+)/, 1, (s) => parseInt(s, 10));
   c.causas = buscar(idx, 'INSOLVENCIA.causas', /(desempleo|sobreendeudamiento|p[eé]rdidas empresariales|disminuci[oó]n de las ventas|inflaci[oó]n)/, 0, () => {
@@ -166,7 +170,8 @@ function filaAcreedor(l) {
 
   let resto = (l.texto.slice(0, ultimo.index) + ' ' + l.texto.slice(ultimo.index + ultimo[0].length)).trim();
   resto = resto.replace(RE_EMAIL, ' ').replace(RE_FECHA, ' ');
-  const nif = RE_NIF.exec(resto)?.[0] || null;
+  const nifBruto = RE_NIF.exec(resto)?.[0] || null;
+  const nif = nifBruto ? nifBruto.replace(/[-\s]/g, '').toUpperCase() : null;
 
   let garantia = null;
   const partes = resto.split('|').map((x) => x.trim()).filter(Boolean);
@@ -188,7 +193,7 @@ function filaAcreedor(l) {
   } else {
     [acreedor, concepto] = partirNombreConcepto(limpiar(sinVacios[0] || ''));
   }
-  if (!acreedor) return null;
+  if (!acreedor || /^total(?:\s|$)/i.test(acreedor)) return null;
   const { clase, regla } = claseCredito(acreedor, concepto, garantia);
   return { acreedor, nif, concepto: concepto || 'Sin concepto indicado', garantia, importe, clase, regla_clase: regla };
 }
