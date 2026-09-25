@@ -3,7 +3,7 @@
   "ficheros": {
     "packs/concurso-sin-masa.v1.json": "cf30d242ce77e3d2b826e987bbee3fae397ec1c182d7bad3bb5e860919db14ff",
     "packs/declaracion-sin-masa.v1.json": "c642d47397223361104db6834c8b26191e99b8473ab409f3c7cc443109f69e79",
-    "src/bloques.mjs": "914d0d0024ea5fcba83f8227c25da357886f41e57f81b1dc7ee82075948dfa2d",
+    "src/bloques.mjs": "a21b749c41a4ac5b533ae9045348157c4cabf5f27d0d5a8539d5c5f291b55425",
     "src/cargar-pack.mjs": "8d5dd4864a7b02b3fad7136656484b7161724feb8ccd9a0c50bfa048faa375c8",
     "src/controles-calidad.mjs": "0ef171359ae9eaf02a964b362b0f0118eb47a97b4715630644d51f8cc1883c94",
     "src/creditos.mjs": "67d4161cf945bc73f9ba907427a7e845945814348cf553319c8508dfa9e2b4a9",
@@ -34,6 +34,11 @@
     "web/app.mjs": "b9b978d0b1c1e3ac48b1c73fbebdc69c5cfa7b47fe6919b355afb3f429802812",
     "web/estilos.css": "588efc1a65c32aae03dfe1ca3715878e13b699d855c503fec266c529741f3140",
     "web/index.html": "8ba7d56fa266009325f45bbbf5e1e5d5ad092026c3e3695309b0b99ab7dd9711",
-    "web/case-store.mjs": "f36adfeb88f47f23a9a1ab14042a73320ad2a400ab79a2490a6114d6cb3619e3"
+    "web/case-store.mjs": "f36adfeb88f47f23a9a1ab14042a73320ad2a400ab79a2490a6114d6cb3619e3",
+    "knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json": "9e3d486d5c238e80b9e5bff09d67de57a578126c82bea227ba289a4b24867f22",
+    "knowledge/runtime/manifest.json": "926d2f387388896798216afd51d1d1e35d38925847701696c4f28d22868fd8c1",
+    "src/core/human-decision-boundary.mjs": "b1dbbc5748d654caf26b59f724b471817034e94d0318585dff6cd04cdff5698c",
+    "src/core/knowledge/browser-loader.mjs": "3c8d5ced1cc26148d4ce90b74d95d572ba7654360bf20815341d8709235f0da8",
+    "src/core/knowledge/contracts.mjs": "c7b78a4f1a57649ceeec3c7c592582485ca2b2489eda022d37cfa4ca1a199d07"
   }
 }
