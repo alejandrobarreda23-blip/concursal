@@ -19,6 +19,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Syntax check
+        run: |
+          node --check web/app.mjs
+          node --check netlify/functions/extract-solicitud.mjs
+          node --check netlify/functions/assist-case.mjs
       - name: Golden hash report
         run: node scripts/report-golden.mjs
       - name: Regression tests

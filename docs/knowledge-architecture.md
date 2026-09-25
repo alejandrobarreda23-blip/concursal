@@ -163,3 +163,45 @@ La interfaz deja la extracción IA desactivada por defecto. Cuando se activa, la
 La función aplica defensa en profundidad: rechaza peticiones sin manifiesto de privacidad, sin pseudónimos locales o con patrones de identificadores directos detectables. El prompt del extractor ordena tratar los tokens como valores opacos y prohíbe reconstruir identidades.
 
 Al recibir la respuesta estructurada, el navegador rehidrata los tokens localmente antes de fusionarlos con el lector determinista. Si el control local de fugas falla, no se hace ninguna petición de red.
+
+
+## Tres capas de IA opcional
+
+La IA no sustituye al Legal Core. Se reserva para zonas donde la semántica del lenguaje natural puede superar razonablemente a reglas rígidas.
+
+### IA 1 — extracción documental
+
+Entrada: texto de la solicitud pseudonimizado en cliente.
+
+Salida: propuesta estructurada con confianza y evidencia de página/línea.
+
+Frontera: no escribe `decision_judicial`.
+
+### IA 2 — auditor documental semántico
+
+Entrada: el texto pseudonimizado que puede conservarse en el expediente local.
+
+Objetivo: detectar contradicciones internas, omisiones semánticas, cifras incompatibles y formulaciones que requieran revisión.
+
+Salida: hallazgos, evidencia y preguntas de revisión. No emite conclusiones jurídicas.
+
+### IA 3 — mapa de cuestiones con Knowledge
+
+Entrada: un `safe-case snapshot` sin nombre, NIF, domicilio, representación, acreedores nominativos ni texto libre de créditos; además recibe únicamente las reglas y fuentes de los módulos Knowledge potencialmente relevantes.
+
+Objetivo: issue spotting trazable: qué reglas revisar, qué hechos faltan y qué cuestiones requieren decisión judicial.
+
+Salida: ids de reglas, relevancia, hechos faltantes y marca de decisión humana. No determina competencia, insolvencia, art. 37 bis, buena fe ni EPI.
+
+## Interfaz orientada a expediente
+
+El expediente evoluciona a seis superficies:
+
+- **Resumen**;
+- **Documentos y datos**;
+- **Análisis**;
+- **Acreedores**;
+- **Resoluciones**;
+- **Actividad**.
+
+La vista global **Knowledge** funciona como inspector navegable del corpus y deja de mostrar únicamente métricas.

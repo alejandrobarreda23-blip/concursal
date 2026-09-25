@@ -13,8 +13,8 @@
       <div class="judicial-brand">
         <div class="judicial-brand-mark">CS</div>
         <div>
-          <div class="judicial-brand-title">Concurso sin masa</div>
-          <div class="judicial-brand-subtitle">Tramitación concursal</div>
+          <div class="judicial-brand-title">Concursal</div>
+          <div class="judicial-brand-subtitle">Legal Core · persona física</div>
         </div>
       </div>
 
@@ -90,10 +90,11 @@
                 <strong>Arrastre aquí una solicitud de concurso</strong>
                 <span>PDF con texto · lectura local por defecto</span>
               </label>
-              <label class="extractor-option">
+              <div class="extractor-option">
                 <input id="ai-extraction-toggle" type="checkbox">
-                <span><b>Extracción IA anonimizada</b><small>Antes de cualquier envío, nombres, identificadores, domicilios, emails, teléfonos y cuentas se sustituyen localmente por pseudónimos. La tabla de equivalencias nunca sale de este navegador. La IA solo propone datos; nunca adopta decisiones judiciales.</small></span>
-              </label>
+                <span><b>IA 1 · Extracción anonimizada</b><small>Antes de cualquier envío, los identificadores se sustituyen localmente por pseudónimos. La tabla de equivalencias nunca sale de este navegador.</small></span>
+                <button id="ai-privacy-info" class="privacy-info-button" type="button">Por qué es seguro →</button>
+              </div>
               <div id="upload-status"></div>
             </section>
 
@@ -138,6 +139,26 @@
             <div><div class="judicial-kicker">Criterio y análisis</div><h1>Knowledge</h1><p>El Legal Core ejecuta contratos genéricos. El derecho concursal vive en packs versionados y puede crecer sin convertir el motor en un conjunto de reglas específicas.</p></div>
           </div>
           <div id="knowledge-summary"></div>
+          <div class="knowledge-explorer">
+            <div class="knowledge-toolbar">
+              <label class="search-box"><span>⌕</span><input id="knowledge-search" type="search" placeholder="Buscar regla, artículo, fase, resolución o criterio"></label>
+              <div id="knowledge-tabs" class="knowledge-tabs">
+                <button class="active" data-knowledge-section="reglas">Reglas</button>
+                <button data-knowledge-section="normas">Normas</button>
+                <button data-knowledge-section="fases">Fases</button>
+                <button data-knowledge-section="resoluciones">Resoluciones</button>
+                <button data-knowledge-section="fundamentos">Fundamentos</button>
+                <button data-knowledge-section="jurisprudencia">Jurisprudencia</button>
+                <button data-knowledge-section="huecos">Huecos</button>
+              </div>
+            </div>
+            <div class="knowledge-browser-layout">
+              <section class="judicial-section-card">
+                <div id="knowledge-browser" class="knowledge-browser"></div>
+              </section>
+              <aside id="knowledge-detail" class="knowledge-detail"></aside>
+            </div>
+          </div>
           <div class="knowledge-layout">
             <section class="judicial-section-card">
               <div class="judicial-section-heading"><div><div class="judicial-kicker">Cobertura</div><h2>Módulos</h2><p>Distribución de las reglas del Knowledge de persona física.</p></div></div>
@@ -154,9 +175,10 @@
           <header id="case-header" class="case-ejcat-header"></header>
           <nav id="case-tabs" class="case-ejcat-nav" aria-label="Áreas del expediente">
             <button class="active" data-case-tab="resumen">Resumen</button>
-            <button data-case-tab="solicitud">Solicitud</button>
+            <button data-case-tab="solicitud">Documentos y datos</button>
+            <button data-case-tab="analisis">Análisis</button>
             <button data-case-tab="acreedores">Acreedores</button>
-            <button data-case-tab="resolucion">Resolución</button>
+            <button data-case-tab="resolucion">Resoluciones</button>
             <button data-case-tab="actividad">Actividad</button>
           </nav>
 
@@ -178,6 +200,10 @@
                   <div id="juzgado" class="rejilla"></div>
                 </div>
               </div>
+            </section>
+
+            <section id="case-tab-analisis" class="case-tab oculto">
+              <div id="case-analysis"></div>
             </section>
 
             <section id="case-tab-acreedores" class="case-tab oculto">
@@ -215,6 +241,33 @@
       <footer class="pie">Borradores sin valor hasta su revisión y firma · datos de expedientes guardados localmente en este navegador.</footer>
     </div>
   </div>
+
+  <dialog id="ai-privacy-dialog" class="privacy-dialog">
+    <div class="privacy-dialog-header">
+      <div><span class="judicial-kicker">Privacidad por diseño</span><h2>Por qué la IA no necesita conocer la identidad del deudor</h2></div>
+      <button id="ai-privacy-close" type="button" aria-label="Cerrar">×</button>
+    </div>
+    <div class="privacy-dialog-body">
+      <div class="privacy-flow">
+        <article><b>1 · Lectura local</b><span>PDF.js extrae el texto dentro del navegador. El PDF original no se envía.</span></article>
+        <article><b>2 · Pseudonimización local</b><span>Nombres, NIF/NIE, domicilios, emails, teléfonos, cuentas y otros identificadores se sustituyen por tokens.</span></article>
+        <article><b>3 · Vault efímero</b><span>La correspondencia <code>[PERSONA_001] ↔ nombre real</code> sólo existe en memoria del navegador y nunca forma parte de la petición HTTP.</span></article>
+        <article><b>4 · Doble control de fugas</b><span>Si el navegador detecta un identificador residual, cancela la llamada. El servidor vuelve a comprobarlo antes de contactar con el proveedor.</span></article>
+        <article><b>5 · IA sin identidad</b><span>El modelo recibe contexto jurídico y documental, pero trata los pseudónimos como valores opacos y no puede decidir cuestiones reservadas al juez.</span></article>
+        <article><b>6 · Rehidratación local</b><span>La respuesta vuelve con tokens y se reconstruyen los valores reales exclusivamente en el navegador.</span></article>
+      </div>
+      <section class="privacy-boundary">
+        <h3>Qué sale del navegador</h3>
+        <p>Texto pseudonimizado, marcadores de página/línea y un manifiesto con el número de sustituciones.</p>
+        <h3>Qué no sale</h3>
+        <p>El PDF original, la tabla de equivalencias, nombre real, NIF/NIE, domicilio y demás identificadores detectados.</p>
+      </section>
+      <section class="privacy-caveat">
+        <b>Importante</b>
+        <p>Es una pseudonimización local de alta cobertura, no una garantía matemática de anonimato absoluto. Por eso el sistema trabaja en modo <em>fail closed</em>: ante una posible fuga, no envía nada y conserva el flujo determinista local.</p>
+      </section>
+    </div>
+  </dialog>
 
   <script type="module" src="/web/app.mjs"></script>
 </body>
