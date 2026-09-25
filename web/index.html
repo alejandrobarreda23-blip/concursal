@@ -24,17 +24,29 @@
           <button class="judicial-nav-item is-active" data-app-view="dashboard">
             <span class="nav-icon">⌂</span><span>Bandeja</span>
           </button>
+          <button class="judicial-nav-item" data-app-view="review">
+            <span class="nav-icon">✓</span><span>Para revisar</span><span id="nav-review-count" class="judicial-nav-counter oculto">0</span>
+          </button>
         </div>
         <div class="judicial-nav-group">
           <div class="judicial-nav-label">Expedientes</div>
           <button class="judicial-nav-item" data-app-view="procedimientos">
             <span class="nav-icon">▤</span><span>Procedimientos</span><span id="nav-case-count" class="judicial-nav-counter oculto">0</span>
           </button>
+          <button class="judicial-nav-item" data-app-view="families">
+            <span class="nav-icon">#</span><span>Familias</span>
+          </button>
         </div>
         <div class="judicial-nav-group">
           <div class="judicial-nav-label">Criterio y análisis</div>
           <button class="judicial-nav-item" data-app-view="knowledge">
-            <span class="nav-icon">K</span><span>Knowledge</span>
+            <span class="nav-icon">K</span><span>Criterio</span>
+          </button>
+          <button class="judicial-nav-item" data-app-view="reports">
+            <span class="nav-icon">▥</span><span>Informes</span>
+          </button>
+          <button class="judicial-nav-item" data-app-view="learnings">
+            <span class="nav-icon">★</span><span>Aprendizajes</span>
           </button>
         </div>
       </nav>
@@ -58,8 +70,11 @@
 
       <nav class="judicial-mobile-nav" aria-label="Navegación móvil">
         <button class="judicial-mobile-nav-item is-active" data-app-view="dashboard">Bandeja</button>
+        <button class="judicial-mobile-nav-item" data-app-view="review">Revisar</button>
         <button class="judicial-mobile-nav-item" data-app-view="procedimientos">Procedimientos</button>
-        <button class="judicial-mobile-nav-item" data-app-view="knowledge">Knowledge</button>
+        <button class="judicial-mobile-nav-item" data-app-view="families">Familias</button>
+        <button class="judicial-mobile-nav-item" data-app-view="knowledge">Criterio</button>
+        <button class="judicial-mobile-nav-item" data-app-view="reports">Informes</button>
       </nav>
 
       <main class="judicial-main">
@@ -132,6 +147,34 @@
           <section class="judicial-section-card">
             <div id="procedure-list" class="case-list full"></div>
           </section>
+        </section>
+
+        <section id="view-review" class="app-view oculto">
+          <div class="procedures-hero">
+            <div><div class="judicial-kicker">Trabajo</div><h1>Para revisar</h1><p>Asuntos que requieren una decisión judicial, una comprobación documental o una revisión específica de buena fe.</p></div>
+          </div>
+          <div id="review-view"></div>
+        </section>
+
+        <section id="view-families" class="app-view oculto">
+          <div class="procedures-hero">
+            <div><div class="judicial-kicker">Expedientes</div><h1>Familias de asuntos</h1><p>Procedimientos agrupados por rasgos jurídicos compartidos. Sirve para detectar patrones y divergencias, nunca para trasladar automáticamente un criterio de un caso a otro.</p></div>
+          </div>
+          <div id="families-view"></div>
+        </section>
+
+        <section id="view-reports" class="app-view oculto">
+          <div class="procedures-hero">
+            <div><div class="judicial-kicker">Actividad</div><h1>Informes</h1><p>Estadística local de la bandeja: volumen, pasivo, EPI, crédito público y producción de resoluciones.</p></div>
+          </div>
+          <div id="reports-view"></div>
+        </section>
+
+        <section id="view-learnings" class="app-view oculto">
+          <div class="procedures-hero">
+            <div><div class="judicial-kicker">Mejora supervisada</div><h1>Aprendizajes</h1><p>Correcciones humanas sobre lo que leyó la máquina. No se convierten automáticamente en reglas: forman un corpus de mejora revisable.</p></div>
+          </div>
+          <div id="learnings-view"></div>
         </section>
 
         <section id="view-knowledge" class="app-view oculto">
