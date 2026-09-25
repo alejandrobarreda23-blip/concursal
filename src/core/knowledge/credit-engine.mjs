@@ -29,8 +29,7 @@ const PRIORITY_RANK = Object.freeze({
   subordinado: 0,
   ordinario: 1,
   privilegio_general: 2,
-  privilegio_especial: 3,
-  contra_masa: 4
+  privilegio_especial: 3
 });
 
 function creditPriority(c) {
