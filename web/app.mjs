@@ -802,9 +802,32 @@ function pintarAnalysis() {
   const rules = (estado.sourceKnowledgeRaw.reglas || []).filter((r)=>modules.includes(r.modulo));
   const results = estado.currentCase.ai_results || {};
   const hasSafeDoc = Boolean(estado.currentCase.ai_context?.safe_document_text);
+  const goodFaith = evaluarIndicadoresBuenaFe({
+    expediente: estado.expediente,
+    lectura: estado.lectura,
+    aiResults: results,
+    safeDocumentText: estado.currentCase.ai_context?.safe_document_text || ''
+  });
+  const [goodFaithLabel, goodFaithTone] = buenaFeLabel(goodFaith.estado);
   $('case-analysis').innerHTML = `<div class="case-analysis-workspace">
     <section class="analysis-hero">
       <div><span class="case-section-kicker">Análisis</span><h2>Motor determinista + Knowledge + asistencias IA opcionales</h2><p>Las reglas estructuradas siguen siendo la columna vertebral. La IA se reserva para tareas semánticas donde un sistema determinista puede perder matices, contradicciones o relevancia contextual.</p></div>
+    </section>
+    <section class="good-faith-card tone-${goodFaithTone}">
+      <header>
+        <div><span class="case-section-kicker">Buena fe · art. 487 TRLC</span><h3>${esc(goodFaithLabel)}</h3><p>${esc(goodFaith.conclusion)}</p></div>
+        <button data-jump-rule="EPI_017">Abrir criterio EPI_017 →</button>
+      </header>
+      <div class="good-faith-grid">
+        <div class="good-faith-signals">
+          <h4>Señales detectadas</h4>
+          ${goodFaith.signals.length ? goodFaith.signals.map((s)=>`<article><span class="tone-${s.nivel}">${esc(s.nivel)}</span><div><b>${esc(s.titulo)}</b><p>${esc(s.detalle)}</p><small>${esc(s.origen)}</small></div></article>`).join('') : '<p class="good-faith-empty">Ninguna señal automática. Eso no sustituye la valoración judicial de las circunstancias.</p>'}
+        </div>
+        <div class="good-faith-factors">
+          <h4>Factores que conviene comprobar</h4>
+          ${goodFaith.factors.map((f)=>`<div><span class="factor-state state-${esc(f.estado)}"></span><p><b>${esc(f.titulo)}</b><small>${esc(f.nota)}</small></p></div>`).join('')}
+        </div>
+      </div>
     </section>
     <section class="analysis-grid">
       <article class="analysis-card deterministic">
