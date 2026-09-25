@@ -13,10 +13,11 @@ function condicionCumplida(cond, ctx) {
 }
 
 function detallePublico(publico) {
-  const nombres = { publico_aeat: 'la Agencia Estatal de Administración Tributaria', publico_tgss: 'la Seguridad Social' };
-  const partes = Object.entries(publico).map(([clase, d]) =>
-    `Con ${nombres[clase]}, sobre una deuda de ${formatoEuros(d.total)}, se exoneran ${formatoEuros(d.exonerable)} y no se exoneran ${formatoEuros(d.no_exonerable)}.`);
-  return partes.join(' ');
+  return Object.values(publico).map((d) => {
+    const sub = Number(d.subordinado_exonerado || 0);
+    const detalleSub = sub > 0 ? ` De ese importe, ${formatoEuros(sub)} corresponden a crédito subordinado íntegramente exonerado.` : '';
+    return `Con ${d.acreedor || 'el acreedor público'}, sobre una deuda pública total de ${formatoEuros(d.total)}, se exoneran ${formatoEuros(d.exonerable)} y no se exoneran ${formatoEuros(d.no_exonerable)}.${detalleSub}`;
+  }).join(' ');
 }
 
 export function cabeceraIR(exp) {
@@ -70,6 +71,7 @@ export function construirIR({ expediente, fase, clasificacion, pack, knowledge =
     creditos: clasificacion.filas,
     totales: clasificacion.totales,
     credito_publico: clasificacion.publico,
+    avisos_clasificacion: clasificacion.avisos || [],
     variables,
     bloques,
     procedencia: {
