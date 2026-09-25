@@ -951,7 +951,6 @@ function pintarAcreedores() {
     ['ordinario', 'Ordinario'],
     ['privilegio_general', 'Privilegio general'],
     ['privilegio_especial', 'Privilegio especial'],
-    ['contra_masa', 'Contra la masa']
   ];
   const opcionesRango = (value) => rangos.map(([v, label]) => `<option value="${v}" ${String(value || '') === v ? 'selected' : ''}>${label}</option>`).join('');
 
