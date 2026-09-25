@@ -60,7 +60,8 @@ test('anonimización local: la rehidratación sucede sólo después de volver al
     }
   });
   assert.equal(restored.campos.deudor_nombre.value, 'Juan Pérez Gómez');
-  assert.equal(restored.campos.deudor_nif.value, '12345678Z');
+  // La capa de privacidad restaura exactamente el texto original; la normalización jurídica ocurre después en el adaptador de extracción.
+  assert.equal(restored.campos.deudor_nif.value, '12345678-Z');
   assert.match(restored.campos.deudor_nombre.evidence.quote, /Juan Pérez Gómez/);
 });
 
