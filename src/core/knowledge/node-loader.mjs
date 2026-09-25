@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { prepareKnowledgeRuntime } from './runtime.mjs';
 
 export const KNOWLEDGE_CONCURSAL_CSM = fileURLToPath(
-  new URL('../../../knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json', import.meta.url)
+  new URL('../../../knowledge/runtime/concursal/concurso-sin-masa-1.1.0.json', import.meta.url)
 );
 
 export function loadKnowledgeRuntime(filePath = KNOWLEDGE_CONCURSAL_CSM) {

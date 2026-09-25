@@ -46,7 +46,7 @@ export function controlesCalidad(ir, doc, texto) {
   // 4. Toda cifra en euros del texto procede del IR (no hay importes "huérfanos")
   const permitidos = new Set([t.pasivo, t.exonerado, t.no_exonerado].map(formatoEuros));
   for (const c of ir.creditos) [c.importe, c.exonerado, c.no_exonerado].forEach((v) => permitidos.add(formatoEuros(v)));
-  for (const d of Object.values(ir.credito_publico)) [d.total, d.exonerable, d.no_exonerable].forEach((v) => permitidos.add(formatoEuros(v)));
+  for (const d of Object.values(ir.credito_publico)) [d.total, d.exonerable, d.no_exonerable, d.subordinado_exonerado].filter((v) => Number.isFinite(v)).forEach((v) => permitidos.add(formatoEuros(v)));
   for (const m of texto.matchAll(/\d{1,3}(?:\.\d{3})*,\d{2} €/g)) {
     if (!permitidos.has(m[0])) fallos.push(`Importe ${m[0]} en el texto que no procede de los datos del expediente.`);
   }

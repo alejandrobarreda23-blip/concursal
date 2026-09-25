@@ -15,6 +15,8 @@ import { adaptPersonaFisicaKnowledgeSource, personaFisicaKnowledgeSummary } from
 import { fusionarLecturaConIA } from '/src/adapters/concursal/ai-extraction.mjs';
 import { anonimizarDocumentoConcursal } from '/src/adapters/concursal/anonymize-document.mjs';
 import { buildSafeCaseSnapshot, buildKnowledgeContext, validateSafeCaseSnapshot, relevantKnowledgeModules } from '/src/adapters/concursal/ai-tools.mjs';
+import { evaluarIndicadoresBuenaFe } from '/src/adapters/concursal/good-faith.mjs';
+import { buildConcursalFamilies, buildConcursalReport, buildReviewQueue, buildLearningSummary, concursalTags } from '/src/adapters/concursal/insights.mjs';
 import { listProcedimientos, getProcedimiento, putProcedimiento, deleteProcedimiento, findBySourceHash } from '/web/case-store.mjs';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
@@ -26,8 +28,13 @@ const euros = (n) => (n == null || n === '' ? '—' : Number(n).toLocaleString('
 const CLAVE_JUZGADO = 'csm.datos_juzgado.v1';
 const CLAVE_EXTRACTOR_IA = 'csm.extractor_ia.v1';
 const SAVE_DELAY = 350;
+const todayLocal = () => {
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+};
 const [knowledge, sourceKnowledgeRaw] = await Promise.all([
-  loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.0.0.json'),
+  loadKnowledgeRuntimeFromUrl('/knowledge/runtime/concursal/concurso-sin-masa-1.1.0.json'),
   fetch('/knowledge/source/concursal/kb-concurso-persona-fisica-1.0.0.json', { cache: 'no-store' }).then((r) => {
     if (!r.ok) throw new Error(`No se ha podido cargar el Knowledge de persona física (${r.status}).`);
     return r.json();
@@ -203,7 +210,7 @@ function campo({ etiqueta, ruta, raiz = 'expediente', tipo = 'texto', opciones =
   else control = `<input ${attrs} ${tipo === 'fecha' ? 'type="date"' : 'type="text"'} ${tipo === 'numero' || tipo === 'entero' ? `data-tipo="${tipo}" inputmode="decimal"` : ''} value="${esc(v ?? '')}">`;
   const f = fuente === false ? '' : fuente
     ? `<span class="fuente" title="${esc(fuente.fuente?.texto || '')}">Leído en p. ${fuente.fuente?.pagina}, l. ${fuente.fuente?.linea} · ${esc(fuente.regla)}</span>`
-    : '<span class="fuente manual">No leído: complételo</span>';
+    : '<span class="fuente manual">No leído · puede dejarse pendiente en el borrador</span>';
   return `<label class="campo"><span>${esc(etiqueta)}</span>${control}${f}</label>`;
 }
 
@@ -229,7 +236,7 @@ document.addEventListener('change', (ev) => {
 // ---------- navegación ----------
 function setAppView(view) {
   estado.appView = view;
-  ['dashboard', 'procedimientos', 'knowledge', 'workspace'].forEach((id) => {
+  ['dashboard', 'review', 'procedimientos', 'families', 'reports', 'learnings', 'knowledge', 'workspace'].forEach((id) => {
     $('view-' + id)?.classList.toggle('oculto', id !== view);
   });
   document.querySelectorAll('[data-app-view]').forEach((b) => {
@@ -238,9 +245,21 @@ function setAppView(view) {
   if (view === 'dashboard') {
     $('topbar-title').textContent = 'Bandeja concursal';
     $('topbar-subtitle').textContent = 'Procedimientos guardados únicamente en este navegador';
+  } else if (view === 'review') {
+    $('topbar-title').textContent = 'Para revisar';
+    $('topbar-subtitle').textContent = 'Decisiones pendientes, incidencias y señales de buena fe';
   } else if (view === 'procedimientos') {
     $('topbar-title').textContent = 'Procedimientos';
     $('topbar-subtitle').textContent = 'Expedientes locales y estado de tramitación';
+  } else if (view === 'families') {
+    $('topbar-title').textContent = 'Familias';
+    $('topbar-subtitle').textContent = 'Patrones de asuntos sin propagación automática de criterio';
+  } else if (view === 'reports') {
+    $('topbar-title').textContent = 'Informes';
+    $('topbar-subtitle').textContent = 'Actividad y composición de la bandeja local';
+  } else if (view === 'learnings') {
+    $('topbar-title').textContent = 'Aprendizajes';
+    $('topbar-subtitle').textContent = 'Correcciones humanas para mejorar extracción y Knowledge';
   } else if (view === 'knowledge') {
     $('topbar-title').textContent = 'Knowledge';
     $('topbar-subtitle').textContent = 'Conocimiento jurídico separado del Legal Core';
@@ -523,10 +542,20 @@ async function cargarCasos() {
   estado.cases = await listProcedimientos();
   pintarDashboard();
   pintarProcedimientos();
+  pintarReviewView();
+  pintarFamiliesView();
+  pintarReportsView();
+  pintarLearningsView();
   const counter = $('nav-case-count');
   if (counter) {
     counter.textContent = estado.cases.length;
     counter.classList.toggle('oculto', !estado.cases.length);
+  }
+  const reviewCounter = $('nav-review-count');
+  if (reviewCounter) {
+    const count = buildReviewQueue(estado.cases).length;
+    reviewCounter.textContent = count;
+    reviewCounter.classList.toggle('oculto', !count);
   }
 }
 
@@ -596,6 +625,82 @@ function pintarProcedimientos() {
 $('case-search').addEventListener('input', pintarProcedimientos);
 $('case-filter').addEventListener('change', pintarProcedimientos);
 
+function buenaFeLabel(estadoBF) {
+  return ({
+    prioridad_alta: ['Revisión prioritaria', 'high'],
+    revisar: ['Revisar buena fe', 'medium'],
+    senal_debil: ['Señal débil', 'low'],
+    sin_indicios_detectados: ['Sin indicios automáticos', 'neutral']
+  })[estadoBF] || ['Revisar', 'neutral'];
+}
+
+function pintarReviewView() {
+  if (!$('review-view')) return;
+  const queue = buildReviewQueue(estado.cases);
+  $('review-view').innerHTML = queue.length ? `
+    <div class="review-list">${queue.map(({caso,goodFaith,needsDecision}) => {
+      const [label,tone] = buenaFeLabel(goodFaith.estado);
+      return `<article class="review-row">
+        <button data-open-case="${esc(caso.id)}">
+          <span class="review-priority tone-${tone}">!</span>
+          <span class="review-main"><b>${esc(casoTitulo(caso))}</b><small>${esc(casoSubtitulo(caso))}</small></span>
+          <span class="review-reasons">${needsDecision ? '<em>decisión pendiente</em>' : ''}${goodFaith.estado !== 'sin_indicios_detectados' ? `<em class="tone-${tone}">${esc(label)}</em>` : ''}</span>
+          <span>→</span>
+        </button>
+      </article>`;
+    }).join('')}</div>` : emptyList('No hay asuntos que requieran una revisión especial.');
+}
+
+function pintarFamiliesView() {
+  if (!$('families-view')) return;
+  const families = buildConcursalFamilies(estado.cases);
+  $('families-view').innerHTML = families.length ? `<div class="families-grid">${families.map((family) => `
+    <article class="family-card">
+      <header><div><span class="judicial-kicker">Familia</span><h3>${esc(family.label)}</h3></div><strong>${family.total}</strong></header>
+      <div class="family-stats"><span>${family.generated} con resolución</span><span>${family.pending} pendientes</span><span>${euros(family.pasivo)} pasivo</span></div>
+      <div class="family-cases">${family.cases.slice(0,6).map((caso)=>`<button data-open-case="${esc(caso.id)}"><span>${esc(casoTitulo(caso))}</span><small>${euros(caso.expediente?.solicitud?.pasivo_declarado)}</small></button>`).join('')}</div>
+      ${family.cases.length>6 ? `<small class="family-more">+${family.cases.length-6} asuntos más</small>` : ''}
+    </article>`).join('')}</div>` : emptyList('Las familias aparecerán cuando incorpores procedimientos.');
+}
+
+function pintarReportsView() {
+  if (!$('reports-view')) return;
+  const report = buildConcursalReport(estado.cases);
+  const tagCounts = new Map();
+  for (const caso of estado.cases) for (const tag of concursalTags(caso)) tagCounts.set(tag,(tagCounts.get(tag)||0)+1);
+  const tags=[...tagCounts.entries()].sort((a,b)=>b[1]-a[1]);
+  $('reports-view').innerHTML = `
+    <section class="report-kpis">
+      <article><span>Procedimientos</span><b>${report.total}</b></article>
+      <article><span>Autos declaración</span><b>${report.declaracion_generada}</b></article>
+      <article><span>Conclusiones</span><b>${report.conclusion_generada}</b></article>
+      <article><span>Con EPI</span><b>${report.epi}</b></article>
+      <article><span>Con crédito público</span><b>${report.credito_publico}</b></article>
+      <article><span>Pasivo total</span><b>${euros(report.pasivo_total)}</b></article>
+    </section>
+    <div class="report-grid">
+      <section class="judicial-section-card report-panel"><div class="judicial-section-heading"><div><div class="judicial-kicker">Composición</div><h2>Familias jurídicas</h2></div></div>
+        <div class="report-bars">${tags.length ? tags.map(([tag,count])=>`<div><span>${esc(tag)}</span><div><i style="width:${report.total ? Math.max(5,(count/report.total)*100) : 0}%"></i></div><b>${count}</b></div>`).join('') : '<p class="judicial-mini-empty">Sin datos todavía.</p>'}</div>
+      </section>
+      <section class="judicial-section-card report-panel"><div class="judicial-section-heading"><div><div class="judicial-kicker">Magnitudes</div><h2>Expediente medio</h2></div></div>
+        <div class="report-facts"><div><span>Pasivo medio</span><b>${euros(report.pasivo_medio)}</b></div><div><span>Acreedores por asunto</span><b>${report.acreedores_medio.toFixed(1)}</b></div><div><span>Garantía real</span><b>${report.garantia_real}</b></div><div><span>Última actividad</span><b>${fmtDate(report.ultima_actividad)}</b></div></div>
+      </section>
+    </div>`;
+}
+
+function pintarLearningsView() {
+  if (!$('learnings-view')) return;
+  const learning=buildLearningSummary(estado.cases);
+  const labels={deudor:'Nombre deudor',nif:'NIF/NIE',domicilio:'Domicilio',pasivo:'Pasivo',activo:'Activo',acreedores:'N.º acreedores',clase_credito:'Clase crédito'};
+  const entries=Object.entries(learning.counters).sort((a,b)=>b[1]-a[1]);
+  $('learnings-view').innerHTML = `
+    <section class="learning-intro"><span class="judicial-kicker">Aprendizaje supervisado</span><h2>Qué corrige el usuario después de la extracción</h2><p>Estas correcciones sirven para saber dónde falla el extractor. No modifican automáticamente reglas, prompts ni Knowledge.</p></section>
+    <section class="learning-metrics">${entries.map(([key,count])=>`<article><span>${esc(labels[key]||key)}</span><b>${count}</b><small>correcciones detectadas</small></article>`).join('')}</section>
+    <section class="judicial-section-card"><div class="judicial-section-heading"><div><div class="judicial-kicker">Casos corregidos</div><h2>Ejemplos recientes</h2></div></div>
+      <div class="learning-examples">${learning.examples.length ? learning.examples.map((x)=>`<button data-open-case="${esc(x.id)}"><b>${esc(x.titulo)}</b><span>${esc(x.changed.join(' · '))}</span><em>Abrir →</em></button>`).join('') : '<div class="judicial-mini-empty">Todavía no se han detectado correcciones respecto de la lectura original.</div>'}</div>
+    </section>`;
+}
+
 // ---------- abrir expediente ----------
 async function abrirCaso(id) {
   const caso = await getProcedimiento(id);
@@ -603,6 +708,7 @@ async function abrirCaso(id) {
   estado.currentCase = caso;
   estado.lectura = plain(caso.lectura);
   estado.expediente = plain(caso.expediente);
+  if (estado.expediente && !estado.expediente.fecha_resolucion) estado.expediente.fecha_resolucion = todayLocal();
   estado.conclusion = plain(caso.conclusion);
   estado.resultadoDeclaracion = plain(caso.resultadoDeclaracion);
   estado.resultadoConclusion = plain(caso.resultadoConclusion);
@@ -696,9 +802,32 @@ function pintarAnalysis() {
   const rules = (estado.sourceKnowledgeRaw.reglas || []).filter((r)=>modules.includes(r.modulo));
   const results = estado.currentCase.ai_results || {};
   const hasSafeDoc = Boolean(estado.currentCase.ai_context?.safe_document_text);
+  const goodFaith = evaluarIndicadoresBuenaFe({
+    expediente: estado.expediente,
+    lectura: estado.lectura,
+    aiResults: results,
+    safeDocumentText: estado.currentCase.ai_context?.safe_document_text || ''
+  });
+  const [goodFaithLabel, goodFaithTone] = buenaFeLabel(goodFaith.estado);
   $('case-analysis').innerHTML = `<div class="case-analysis-workspace">
     <section class="analysis-hero">
       <div><span class="case-section-kicker">Análisis</span><h2>Motor determinista + Knowledge + asistencias IA opcionales</h2><p>Las reglas estructuradas siguen siendo la columna vertebral. La IA se reserva para tareas semánticas donde un sistema determinista puede perder matices, contradicciones o relevancia contextual.</p></div>
+    </section>
+    <section class="good-faith-card tone-${goodFaithTone}">
+      <header>
+        <div><span class="case-section-kicker">Buena fe · art. 487 TRLC</span><h3>${esc(goodFaithLabel)}</h3><p>${esc(goodFaith.conclusion)}</p></div>
+        <button data-jump-rule="EPI_017">Abrir criterio EPI_017 →</button>
+      </header>
+      <div class="good-faith-grid">
+        <div class="good-faith-signals">
+          <h4>Señales detectadas</h4>
+          ${goodFaith.signals.length ? goodFaith.signals.map((s)=>`<article><span class="tone-${s.nivel}">${esc(s.nivel)}</span><div><b>${esc(s.titulo)}</b><p>${esc(s.detalle)}</p><small>${esc(s.origen)}</small></div></article>`).join('') : '<p class="good-faith-empty">Ninguna señal automática. Eso no sustituye la valoración judicial de las circunstancias.</p>'}
+        </div>
+        <div class="good-faith-factors">
+          <h4>Factores que conviene comprobar</h4>
+          ${goodFaith.factors.map((f)=>`<div><span class="factor-state state-${esc(f.estado)}"></span><p><b>${esc(f.titulo)}</b><small>${esc(f.nota)}</small></p></div>`).join('')}
+        </div>
+      </div>
     </section>
     <section class="analysis-grid">
       <article class="analysis-card deterministic">
@@ -815,9 +944,21 @@ function pintarCampos() {
 function pintarAcreedores() {
   const filas = estado.expediente.creditos;
   const lectura = new Map(estado.lectura.acreedores.map((a) => [a.id, a]));
-  const opc = creditClassIds(estado.knowledge).map((c) => `<option value="${c}">${c.replace(/_/g, ' ')}</option>`).join('');
-  $('acreedores').innerHTML = `<div class="tabla-scroll"><table>
-    <thead><tr><th>Id</th><th>Acreedor</th><th>NIF</th><th>Concepto</th><th>Clase</th><th>Importe (€)</th><th>Valor garantía (€)</th><th></th></tr></thead>
+  const opc = creditClassIds(estado.knowledge).map((clase) => `<option value="${clase}">${clase.replace(/_/g, ' ')}</option>`).join('');
+  const rangos = [
+    ['', '— no consta —'],
+    ['subordinado', 'Subordinado'],
+    ['ordinario', 'Ordinario'],
+    ['privilegio_general', 'Privilegio general'],
+    ['privilegio_especial', 'Privilegio especial'],
+  ];
+  const opcionesRango = (value) => rangos.map(([v, label]) => `<option value="${v}" ${String(value || '') === v ? 'selected' : ''}>${label}</option>`).join('');
+
+  $('acreedores').innerHTML = `<div class="credit-guidance">
+    <b>Crédito público</b><span>Para aplicar correctamente la exoneración por acreedor, indique la clase concursal y, si hay varios créditos de la misma clase, su fecha de origen. Los subordinados se tratan separadamente.</span>
+  </div>
+  <div class="tabla-scroll"><table>
+    <thead><tr><th>Id</th><th>Acreedor</th><th>NIF</th><th>Concepto</th><th>Tipo</th><th>Rango concursal</th><th>Antigüedad</th><th>Importe (€)</th><th>Garantía (€)</th><th></th></tr></thead>
     <tbody>${filas.map((f, i) => {
       const src = lectura.get(f.id)?.fuente;
       return `<tr title="${esc(src ? `p. ${src.pagina}, l. ${src.linea}: ${src.texto}` : 'Añadido a mano')}">
@@ -826,6 +967,8 @@ function pintarAcreedores() {
         <td><input data-raiz="expediente" data-ruta="creditos.${i}.nif" value="${esc(f.nif ?? '')}"></td>
         <td><input data-raiz="expediente" data-ruta="creditos.${i}.concepto" value="${esc(f.concepto)}"></td>
         <td><select data-raiz="expediente" data-ruta="creditos.${i}.clase">${opc.replace(`value="${f.clase}"`, `value="${f.clase}" selected`)}</select></td>
+        <td><select data-raiz="expediente" data-ruta="creditos.${i}.rango_concursal">${opcionesRango(f.rango_concursal)}</select></td>
+        <td><input type="date" data-raiz="expediente" data-ruta="creditos.${i}.fecha_origen" value="${esc(f.fecha_origen ?? '')}"></td>
         <td class="num-col"><input data-raiz="expediente" data-ruta="creditos.${i}.importe" data-tipo="numero" value="${esc(f.importe ?? '')}"></td>
         <td class="num-col"><input data-raiz="expediente" data-ruta="creditos.${i}.valor_garantia" data-tipo="numero" value="${esc(f.valor_garantia ?? '')}" ${f.clase === 'garantia_real' ? '' : 'placeholder="—"'}></td>
         <td><button class="enlace" data-quitar="${i}" aria-label="Quitar ${esc(f.acreedor)}">Quitar</button></td></tr>`;
@@ -835,7 +978,7 @@ function pintarAcreedores() {
   $('anadir-acreedor').onclick = () => {
     const n = estado.expediente.creditos.length + 1;
     let id = `C${n}`; while (estado.expediente.creditos.some((c) => c.id === id)) id += 'b';
-    estado.expediente.creditos.push({ id, acreedor: '', nif: '', concepto: '', importe: null, clase: 'ordinario' });
+    estado.expediente.creditos.push({ id, acreedor: '', nif: '', concepto: '', importe: null, clase: 'ordinario', rango_concursal: '', fecha_origen: '' });
     invalidarResultados('expediente'); pintarAcreedores(); programarGuardado(); pintarCaseHeader(); pintarOverview();
   };
   document.querySelectorAll('[data-quitar]').forEach((b) => { b.onclick = () => {
@@ -856,29 +999,49 @@ function pintarSuma() {
 
 // ---------- datos del juzgado ----------
 function cargarJuzgado() {
+  const base = plain(DATOS_JUZGADO_VACIOS);
   try {
     const g = JSON.parse(localStorage.getItem(CLAVE_JUZGADO) || 'null');
-    if (g) return { ...plain(DATOS_JUZGADO_VACIOS), ...g, procedimiento: { numero: '', nig: '' }, fecha_resolucion: '', numero_resolucion: '' };
+    if (g) return {
+      ...base,
+      ...g,
+      organo: { ...base.organo, ...(g.organo || {}) },
+      juez: { ...base.juez, ...(g.juez || {}) },
+      procedimiento: { numero: '', nig: '' },
+      fecha_resolucion: todayLocal(),
+      numero_resolucion: ''
+    };
   } catch {}
-  return plain(DATOS_JUZGADO_VACIOS);
+  return { ...base, fecha_resolucion: todayLocal() };
 }
 function guardarJuzgado() {
   try { const e = estado.expediente; localStorage.setItem(CLAVE_JUZGADO, JSON.stringify({ organo: e.organo, juez: e.juez })); } catch {}
 }
 function pintarJuzgado() {
-  $('juzgado').innerHTML = [
+  if (!estado.expediente.fecha_resolucion) estado.expediente.fecha_resolucion = todayLocal();
+  const principal = campo({ etiqueta: 'N.º de procedimiento (opcional)', ruta: 'procedimiento.numero', fuente: false });
+  const avanzados = [
+    campo({ etiqueta: 'NIG (opcional)', ruta: 'procedimiento.nig', fuente: false }),
     campo({ etiqueta: 'Tribunal', ruta: 'organo.tribunal', fuente: false }),
     campo({ etiqueta: 'Sección', ruta: 'organo.seccion', fuente: false }),
     campo({ etiqueta: 'Plaza n.º', ruta: 'organo.plaza', tipo: 'entero', fuente: false }),
     campo({ etiqueta: 'Denominación histórica (opcional)', ruta: 'organo.denominacion_historica', fuente: false }),
     campo({ etiqueta: 'Localidad', ruta: 'organo.localidad', fuente: false }),
-    campo({ etiqueta: 'N.º de procedimiento', ruta: 'procedimiento.numero', fuente: false }),
-    campo({ etiqueta: 'NIG', ruta: 'procedimiento.nig', fuente: false }),
-    campo({ etiqueta: 'Juez/a', ruta: 'juez.nombre', fuente: false }),
+    campo({ etiqueta: 'Juez/a (opcional en borrador)', ruta: 'juez.nombre', fuente: false }),
     campo({ etiqueta: 'Cargo', ruta: 'juez.cargo', opciones: [['Magistrado', 'Magistrado'], ['Magistrada', 'Magistrada'], ['Juez', 'Juez'], ['Jueza', 'Jueza']], fuente: false }),
     campo({ etiqueta: 'Fecha del auto', ruta: 'fecha_resolucion', tipo: 'fecha', fuente: false }),
     campo({ etiqueta: 'N.º de resolución (opcional)', ruta: 'numero_resolucion', fuente: false })
   ].join('');
+  $('juzgado').innerHTML = `
+    <div class="minimal-court-fields">
+      ${principal}
+      <div class="auto-date-chip"><span>Fecha de resolución</span><b>${esc(estado.expediente.fecha_resolucion)}</b><small>se completa automáticamente con la fecha local del navegador</small></div>
+    </div>
+    <details class="advanced-court-fields">
+      <summary>Datos avanzados de cabecera</summary>
+      <p>Solo son necesarios si quieres que el borrador salga completamente identificado. Los datos del órgano y del juez se recuerdan en este navegador.</p>
+      <div class="rejilla">${avanzados}</div>
+    </details>`;
 }
 
 // ---------- decisión y resoluciones ----------
@@ -965,7 +1128,11 @@ $('generar-declaracion').onclick = async () => {
 
 function prepararConclusion() {
   const e = estado.expediente;
-  estado.conclusion = declaracionAExpedienteConclusion(e, { fecha_declaracion: e.fecha_resolucion, solicitud_epi_fecha: e.solicitud.pide_epi && e.deudor.tipo === 'persona_natural' ? '' : null });
+  estado.conclusion = declaracionAExpedienteConclusion(e, {
+    fecha_declaracion: e.fecha_resolucion,
+    fecha_resolucion: todayLocal(),
+    solicitud_epi_fecha: e.solicitud.pide_epi && e.deudor.tipo === 'persona_natural' ? '' : null
+  });
   if (estado.conclusion.tramite.solicitud_epi === null && e.solicitud.pide_epi) estado.conclusion.tramite.solicitud_epi = { fecha: '' };
   const conEpi = estado.conclusion.tramite.solicitud_epi != null;
   if (conEpi) { estado.conclusion.tramite.traslado_acreedores ??= null; estado.conclusion.tramite.oposiciones ??= []; }

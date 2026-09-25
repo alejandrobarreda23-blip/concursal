@@ -13,26 +13,28 @@ function condicionCumplida(cond, ctx) {
 }
 
 function detallePublico(publico) {
-  const nombres = { publico_aeat: 'la Agencia Estatal de Administración Tributaria', publico_tgss: 'la Seguridad Social' };
-  const partes = Object.entries(publico).map(([clase, d]) =>
-    `Con ${nombres[clase]}, sobre una deuda de ${formatoEuros(d.total)}, se exoneran ${formatoEuros(d.exonerable)} y no se exoneran ${formatoEuros(d.no_exonerable)}.`);
-  return partes.join(' ');
+  return Object.values(publico).map((d) => {
+    const sub = Number(d.subordinado_exonerado || 0);
+    const detalleSub = sub > 0 ? ` De ese importe, ${formatoEuros(sub)} corresponden a crédito subordinado íntegramente exonerado.` : '';
+    return `Con ${d.acreedor || 'el acreedor público'}, sobre una deuda pública total de ${formatoEuros(d.total)}, se exoneran ${formatoEuros(d.exonerable)} y no se exoneran ${formatoEuros(d.no_exonerable)}.${detalleSub}`;
+  }).join(' ');
 }
 
 export function cabeceraIR(exp) {
+  const numero = text(exp.procedimiento?.numero);
   return {
-    tribunal: text(exp.organo.tribunal),
-    seccion: text(exp.organo.seccion),
-    plaza: exp.organo.plaza,
-    denominacion_historica: text(exp.organo.denominacion_historica) || null,
-    localidad: text(exp.organo.localidad),
-    procedimiento: `Concurso sin masa ${text(exp.procedimiento.numero)}`,
-    nig: text(exp.procedimiento.nig),
+    tribunal: text(exp.organo?.tribunal) || 'Tribunal de Instancia',
+    seccion: text(exp.organo?.seccion) || 'Sección de lo Mercantil',
+    plaza: Number.isInteger(exp.organo?.plaza) && exp.organo.plaza > 0 ? exp.organo.plaza : null,
+    denominacion_historica: text(exp.organo?.denominacion_historica) || null,
+    localidad: text(exp.organo?.localidad) || null,
+    procedimiento: numero ? `Concurso sin masa ${numero}` : 'Concurso sin masa',
+    nig: text(exp.procedimiento?.nig) || null,
     numero_resolucion: text(exp.numero_resolucion) || null,
     fecha: exp.fecha_resolucion,
     fecha_larga: fechaLarga(exp.fecha_resolucion),
-    juez: { nombre: text(exp.juez.nombre), cargo: text(exp.juez.cargo) },
-    deudor: { nombre: text(exp.deudor.nombre), tipo: exp.deudor.tipo },
+    juez: { nombre: text(exp.juez?.nombre), cargo: text(exp.juez?.cargo) || 'Magistrado' },
+    deudor: { nombre: text(exp.deudor?.nombre) || '____________________', tipo: exp.deudor?.tipo },
     representacion: exp.representacion ?? null
   };
 }
@@ -46,7 +48,7 @@ export function construirIR({ expediente, fase, clasificacion, pack, knowledge =
   };
 
   const variables = {
-    deudor: text(exp.deudor.nombre),
+    deudor: text(exp.deudor?.nombre) || '____________________',
     fecha_declaracion: fechaLarga(exp.tramite.auto_declaracion_sin_masa.fecha),
     fecha_solicitud: exp.tramite.solicitud_epi ? fechaLarga(exp.tramite.solicitud_epi.fecha) : null,
     total_pasivo: formatoEuros(clasificacion.totales.pasivo),
@@ -70,6 +72,7 @@ export function construirIR({ expediente, fase, clasificacion, pack, knowledge =
     creditos: clasificacion.filas,
     totales: clasificacion.totales,
     credito_publico: clasificacion.publico,
+    avisos_clasificacion: clasificacion.avisos || [],
     variables,
     bloques,
     procedencia: {

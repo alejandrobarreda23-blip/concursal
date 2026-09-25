@@ -34,11 +34,12 @@ export const REGLAS_DOCUMENTOS = Object.freeze([
 // Clase de crédito a partir del nombre del acreedor y del concepto.
 export const REGLAS_CLASE_CREDITO = Object.freeze([
   { id: 'CLASE.garantia_real', clase: 'garantia_real', patron: /hipotec|garantia real|prendari|reserva de dominio/ },
+  // Exclusión específica del art. 489.1.6.º: debe prevalecer sobre la etiqueta genérica de crédito público.
+  { id: 'CLASE.multa', clase: 'multa_sancion', patron: /multa penal|sancion muy grave/ },
   { id: 'CLASE.aeat', clase: 'publico_aeat', patron: /agencia (?:estatal )?(?:de administracion )?tributaria|\baeat\b|hacienda publica/ },
   { id: 'CLASE.tgss', clase: 'publico_tgss', patron: /tesoreria general de la seguridad social|\btgss\b|seguridad social/ },
   { id: 'CLASE.alimentos', clase: 'alimentos', patron: /alimentos/ },
-  { id: 'CLASE.publico_otro', clase: 'publico_otro', patron: /ayuntamiento|ajuntament|diputaci|organisme de gestio tributaria|agencia tributaria de catalunya|agencia tributaria de|generalitat|consell comarcal|\bdgt\b|direccion general de trafico/ },
-  { id: 'CLASE.multa', clase: 'multa_sancion', patron: /multa penal|sancion muy grave/ }
+  { id: 'CLASE.publico_otro', clase: 'publico_otro', patron: /ayuntamiento|ajuntament|diputaci|organisme de gestio tributaria|agencia tributaria de catalunya|agencia tributaria de|generalitat|consell comarcal|\bdgt\b|direccion general de trafico/ }
 ]);
 
 // Encabezados que abren y cierran la relación de acreedores.

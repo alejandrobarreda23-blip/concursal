@@ -1,6 +1,6 @@
 {
   "pack_id": "concurso-sin-masa",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "descripcion": "Bloques de redacción para autos de conclusión del concurso sin masa, con o sin exoneración del pasivo insatisfecho (TRLC tras la Ley 16/2022).",
   "fuente_estructura": "Estructura observada en autos publicados en el CENDOJ de la Sección de lo Mercantil del Tribunal de Instancia de Girona (2026): antecedentes (declaración sin masa sin auto complementario del art. 37 quinquies; solicitud de EPI del art. 501 sin oposición) y parte dispositiva (conclusión y archivo, créditos exonerados, créditos que en ningún caso se exoneran).",
   "ratificacion": {
@@ -8,27 +8,35 @@
     "ratificado_por": null,
     "fecha": null,
     "hash_bloques": null,
-    "nota": "Ningún bloque es definitivo hasta que el magistrado revise su texto y lo ratifique con `npm run ratificar`. Mientras tanto, todo lo generado sale marcado como BORRADOR NO RATIFICADO."
+    "nota": "La actualización de crédito público conforme a SSTS 260/2026 y 264/2026 requiere nueva revisión judicial antes de ratificar."
   },
   "bloques": [
     {
       "id": "AH.declaracion",
       "seccion": "antecedentes",
-      "variantes": ["conclusion_con_epi", "conclusion_sin_epi"],
+      "variantes": [
+        "conclusion_con_epi",
+        "conclusion_sin_epi"
+      ],
       "texto": "Por auto de {{fecha_declaracion}} se declaró el concurso sin masa de {{deudor}}, de conformidad con los artículos 37 bis y siguientes del texto refundido de la Ley Concursal (TRLC). Ningún acreedor legitimado ha solicitado el nombramiento de administración concursal y no se ha dictado el auto complementario al que se refiere el artículo 37 quinquies TRLC.",
       "verificar": "Remisión a los arts. 37 bis y 37 quinquies TRLC tal como aparece en los autos de Girona."
     },
     {
       "id": "AH.solicitud_epi",
       "seccion": "antecedentes",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "texto": "El {{fecha_solicitud}}, el deudor solicitó la exoneración del pasivo insatisfecho, de la que se dio traslado a los acreedores sin que ninguno haya formulado oposición.",
       "verificar": null
     },
     {
       "id": "FD.conclusion",
       "seccion": "fundamentos",
-      "variantes": ["conclusion_con_epi", "conclusion_sin_epi"],
+      "variantes": [
+        "conclusion_con_epi",
+        "conclusion_sin_epi"
+      ],
       "titulo": "Conclusión del concurso sin masa",
       "texto": "Declarado el concurso sin masa y transcurrido el plazo legal sin que los acreedores legitimados hayan instado el nombramiento de administración concursal, procede acordar la conclusión del procedimiento y el archivo de las actuaciones, conforme a los artículos 37 bis y siguientes TRLC.",
       "verificar": "Precepto concreto que el magistrado prefiera citar para la conclusión."
@@ -36,7 +44,9 @@
     {
       "id": "FD.extincion_persona_juridica",
       "seccion": "fundamentos",
-      "variantes": ["conclusion_sin_epi"],
+      "variantes": [
+        "conclusion_sin_epi"
+      ],
       "solo_si": "persona_juridica",
       "titulo": "Extinción de la persona jurídica",
       "texto": "Tratándose de una persona jurídica, la conclusión del concurso comporta su extinción y el cierre de su hoja de inscripción en los registros públicos que corresponda (art. 485 TRLC).",
@@ -45,7 +55,9 @@
     {
       "id": "FD.epi_concesion",
       "seccion": "fundamentos",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "titulo": "Exoneración del pasivo insatisfecho",
       "texto": "El deudor es persona natural y ha solicitado la exoneración del pasivo insatisfecho. Este tribunal no aprecia ninguna de las circunstancias que, conforme al artículo 487 TRLC, impiden considerar al deudor de buena fe a estos efectos, y ningún acreedor legitimado se ha opuesto a la solicitud. Procede, en consecuencia, conceder la exoneración (art. 501 TRLC).",
       "verificar": "Cita del art. 501 TRLC como en los autos de Girona."
@@ -53,7 +65,9 @@
     {
       "id": "FD.epi_extension",
       "seccion": "fundamentos",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "titulo": "Extensión de la exoneración",
       "texto": "La exoneración alcanza a las deudas insatisfechas, con las excepciones del artículo 489.1 TRLC. El pasivo relacionado asciende a {{total_pasivo}}; se exoneran {{total_exonerado}} y quedan excluidos de la exoneración {{total_no_exonerado}}, conforme al detalle de la parte dispositiva.",
       "verificar": null
@@ -61,16 +75,20 @@
     {
       "id": "FD.epi_credito_publico",
       "seccion": "fundamentos",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "solo_si": "hay_credito_publico_limitado",
       "titulo": "Crédito público",
-      "texto": "Las deudas cuya gestión recaudatoria corresponde a la Agencia Estatal de Administración Tributaria y las deudas con la Seguridad Social solo pueden exonerarse, en cada caso, hasta un máximo de 10.000 euros por deudor: íntegramente los primeros 5.000 euros y en un 50 % a partir de esa cifra (art. 489.1.5.º TRLC). {{detalle_credito_publico}}",
-      "verificar": "Límites cuantitativos vigentes del art. 489.1.5.º TRLC."
+      "texto": "Conforme al artículo 489.1.5.º TRLC, interpretado por las SSTS 260/2026 y 264/2026, el régimen de limitación se aplica a toda clase de crédito de Derecho público, cualquiera que sea la Administración u organismo acreedor. Los créditos públicos subordinados quedan íntegramente afectados por la exoneración. Respecto de los créditos públicos no subordinados, el límite se calcula separadamente para cada acreedor público: se exoneran íntegramente los primeros 5.000 euros y, a partir de esa cifra, el cincuenta por ciento hasta alcanzar un máximo de 10.000 euros exonerados por acreedor. El importe exonerado se imputa en orden inverso al de prelación legal y, dentro de cada clase, según su antigüedad. {{detalle_credito_publico}}",
+      "verificar": "Aplicación individualizada por acreedor y desglose por clase/antigüedad cuando resulte necesario."
     },
     {
       "id": "FD.epi_efectos",
       "seccion": "fundamentos",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "titulo": "Efectos",
       "texto": "Los acreedores de los créditos exonerados no podrán ejercitar acción alguna frente al deudor para su cobro, sin perjuicio de sus acciones frente a los obligados solidarios, fiadores, avalistas, aseguradores y demás obligados legal o contractualmente al pago de la deuda exonerada. La exoneración podrá revocarse en los supuestos y plazos legalmente previstos (arts. 490 y siguientes TRLC).",
       "verificar": "Artículos concretos sobre efectos y revocación que el magistrado prefiera citar."
@@ -78,14 +96,19 @@
     {
       "id": "PD.conclusion",
       "seccion": "dispositiva",
-      "variantes": ["conclusion_con_epi", "conclusion_sin_epi"],
+      "variantes": [
+        "conclusion_con_epi",
+        "conclusion_sin_epi"
+      ],
       "texto": "Declaro concluso el concurso sin masa de {{deudor}} y acuerdo el archivo de las actuaciones.",
       "verificar": null
     },
     {
       "id": "PD.extincion_persona_juridica",
       "seccion": "dispositiva",
-      "variantes": ["conclusion_sin_epi"],
+      "variantes": [
+        "conclusion_sin_epi"
+      ],
       "solo_si": "persona_juridica",
       "texto": "Declaro la extinción de {{deudor}} y acuerdo el cierre de su hoja de inscripción en los registros públicos correspondientes, a cuyo efecto se librarán los mandamientos oportunos.",
       "verificar": null
@@ -93,7 +116,9 @@
     {
       "id": "PD.epi",
       "seccion": "dispositiva",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "texto": "Concedo a {{deudor}} la exoneración del pasivo insatisfecho respecto de los créditos siguientes, por los importes que se indican:",
       "tabla": "exonerados",
       "verificar": null
@@ -101,7 +126,9 @@
     {
       "id": "PD.no_exonerados",
       "seccion": "dispositiva",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "solo_si": "hay_no_exonerados",
       "texto": "Quedan excluidos de la exoneración los importes siguientes:",
       "tabla": "no_exonerados",
@@ -110,21 +137,29 @@
     {
       "id": "PD.exclusiones_legales",
       "seccion": "dispositiva",
-      "variantes": ["conclusion_con_epi"],
+      "variantes": [
+        "conclusion_con_epi"
+      ],
       "texto": "En ningún caso quedan exoneradas las deudas enumeradas en el artículo 489.1 TRLC que pudieran existir, aunque no figuren en la relación anterior.",
       "verificar": "Los autos de Girona transcriben la lista completa del art. 489.1; decidir si se transcribe o se remite."
     },
     {
       "id": "PD.publicidad",
       "seccion": "dispositiva",
-      "variantes": ["conclusion_con_epi", "conclusion_sin_epi"],
+      "variantes": [
+        "conclusion_con_epi",
+        "conclusion_sin_epi"
+      ],
       "texto": "Publíquese esta resolución en el Registro público concursal y líbrense las comunicaciones y mandamientos que procedan.",
       "verificar": null
     },
     {
       "id": "PD.recursos",
       "seccion": "pie",
-      "variantes": ["conclusion_con_epi", "conclusion_sin_epi"],
+      "variantes": [
+        "conclusion_con_epi",
+        "conclusion_sin_epi"
+      ],
       "texto": "Contra esta resolución cabe recurso de reposición ante este tribunal en el plazo de cinco días (art. 546 TRLC).",
       "verificar": "Régimen de recursos: confirmar si el magistrado prefiere otro pie de recurso para esta resolución."
     }

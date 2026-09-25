@@ -3,24 +3,54 @@ import assert from 'node:assert/strict';
 import { exoneracionPublicaLimitada, clasificarCreditos } from '../src/creditos.mjs';
 import { knowledge } from './helpers.mjs';
 
-test('crédito público AEAT/TGSS: tramos del art. 489.1.5.º', () => {
-  assert.equal(exoneracionPublicaLimitada(400000, knowledge), 400000);   // 4.000 € → íntegro
-  assert.equal(exoneracionPublicaLimitada(500000, knowledge), 500000);   // 5.000 € → íntegro
-  assert.equal(exoneracionPublicaLimitada(800000, knowledge), 650000);   // 8.000 € → 5.000 + 1.500
-  assert.equal(exoneracionPublicaLimitada(1500000, knowledge), 1000000); // 15.000 € → tope 10.000
-  assert.equal(exoneracionPublicaLimitada(2500000, knowledge), 1000000); // 25.000 € → tope 10.000
+test('crédito público: tramos cuantitativos del art. 489.1.5.º', () => {
+  assert.equal(exoneracionPublicaLimitada(400000, knowledge), 400000);
+  assert.equal(exoneracionPublicaLimitada(500000, knowledge), 500000);
+  assert.equal(exoneracionPublicaLimitada(800000, knowledge), 650000);
+  assert.equal(exoneracionPublicaLimitada(1500000, knowledge), 1000000);
+  assert.equal(exoneracionPublicaLimitada(2500000, knowledge), 1000000);
 });
 
-test('el límite público se aplica por organismo, sumando todos sus créditos', () => {
+test('STS 260/264-2026: el límite público se aplica por cada acreedor, no por tipo de Administración', () => {
   const r = clasificarCreditos([
-    { id: 'A1', acreedor: 'AEAT', concepto: 'IRPF', importe: 6000, clase: 'publico_aeat' },
-    { id: 'A2', acreedor: 'AEAT', concepto: 'IVA', importe: 6000, clase: 'publico_aeat' },
-    { id: 'S1', acreedor: 'TGSS', concepto: 'Cuotas', importe: 3000, clase: 'publico_tgss' }
+    { id: 'A1', acreedor: 'AEAT', nif: 'Q2826000H', concepto: 'IRPF', importe: 12000, clase: 'publico_aeat', rango_concursal: 'ordinario' },
+    { id: 'M1', acreedor: 'Ayuntamiento A', nif: 'P0800000B', concepto: 'IBI', importe: 12000, clase: 'publico_otro', rango_concursal: 'ordinario' },
+    { id: 'M2', acreedor: 'Ayuntamiento B', nif: 'P1700000A', concepto: 'IVTM', importe: 3000, clase: 'publico_otro', rango_concursal: 'ordinario' }
   ], knowledge);
-  assert.deepEqual(r.publico.publico_aeat, { total: 1200000, exonerable: 850000, no_exonerable: 350000 });
-  assert.deepEqual(r.publico.publico_tgss, { total: 300000, exonerable: 300000, no_exonerable: 0 });
-  const [a1, a2] = r.filas;
-  assert.equal(a1.exonerado + a2.exonerado, 850000);
+  assert.equal(Object.keys(r.publico).length, 3);
+  assert.deepEqual(r.filas.map((x) => x.exonerado), [850000, 850000, 300000]);
+  assert.equal(r.totales.exonerado, 2000000);
+});
+
+test('STS 260/264-2026: el crédito público subordinado se exonera íntegramente fuera del límite', () => {
+  const r = clasificarCreditos([
+    { id: 'P1', acreedor: 'AEAT', nif: 'Q2826000H', concepto: 'Privilegio general', importe: 16000, clase: 'publico_aeat', rango_concursal: 'privilegio_general' },
+    { id: 'O1', acreedor: 'AEAT', nif: 'Q2826000H', concepto: 'Ordinario', importe: 16000, clase: 'publico_aeat', rango_concursal: 'ordinario' },
+    { id: 'S1', acreedor: 'AEAT', nif: 'Q2826000H', concepto: 'Recargos subordinados', importe: 4000, clase: 'publico_aeat', rango_concursal: 'subordinado' }
+  ], knowledge);
+  const byId = Object.fromEntries(r.filas.map((x) => [x.id, x]));
+  assert.equal(byId.S1.exonerado, 400000);
+  assert.equal(byId.O1.exonerado, 1000000); // orden inverso: ordinario antes del privilegiado
+  assert.equal(byId.P1.exonerado, 0);
+  assert.equal(r.publico['nif:Q2826000H'].subordinado_exonerado, 400000);
+  assert.equal(r.publico['nif:Q2826000H'].exonerable, 1400000);
+});
+
+test('crédito público: dentro de la misma clase se aplica la antigüedad y se avisa si falta', () => {
+  const r = clasificarCreditos([
+    { id: 'NUEVO', acreedor: 'TGSS', nif: 'Q2819001D', concepto: 'Cuota 2025', importe: 6000, clase: 'publico_tgss', rango_concursal: 'ordinario', fecha_origen: '2025-01-01' },
+    { id: 'ANTIGUO', acreedor: 'TGSS', nif: 'Q2819001D', concepto: 'Cuota 2022', importe: 6000, clase: 'publico_tgss', rango_concursal: 'ordinario', fecha_origen: '2022-01-01' }
+  ], knowledge);
+  const byId = Object.fromEntries(r.filas.map((x) => [x.id, x]));
+  assert.equal(byId.ANTIGUO.exonerado, 600000);
+  assert.equal(byId.NUEVO.exonerado, 250000);
+  assert.equal(r.avisos.length, 0);
+
+  const sinFechas = clasificarCreditos([
+    { id: 'A', acreedor: 'TGSS', nif: 'Q2819001D', concepto: 'Uno', importe: 6000, clase: 'publico_tgss', rango_concursal: 'ordinario' },
+    { id: 'B', acreedor: 'TGSS', nif: 'Q2819001D', concepto: 'Dos', importe: 6000, clase: 'publico_tgss', rango_concursal: 'ordinario' }
+  ], knowledge);
+  assert.ok(sinFechas.avisos.some((x) => /antigüedad/.test(x)));
 });
 
 test('garantía real: solo se exonera lo que excede del valor de la garantía', () => {
@@ -31,8 +61,8 @@ test('garantía real: solo se exonera lo que excede del valor de la garantía', 
   assert.equal(r2.filas[0].exonerado, 0);
 });
 
-test('clases no exonerables quedan íntegras fuera de la exoneración', () => {
-  for (const clase of ['alimentos', 'rc_extracontractual', 'rc_delito', 'salarios', 'multa_sancion', 'costas_epi', 'publico_otro']) {
+test('clases legalmente no exonerables quedan fuera de la exoneración', () => {
+  for (const clase of ['alimentos', 'rc_extracontractual', 'rc_delito', 'salarios', 'multa_sancion', 'costas_epi']) {
     const r = clasificarCreditos([{ id: 'X', acreedor: 'A', concepto: 'c', importe: 100, clase }], knowledge);
     assert.equal(r.filas[0].exonerado, 0, clase);
     assert.ok(r.filas[0].motivo, clase);

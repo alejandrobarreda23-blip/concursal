@@ -99,13 +99,14 @@ const extractionSchema = {
           importe_euros: { type: 'number', minimum: 0 },
           tipo_acreedor: nullableEnum(['privado','aeat','tgss','ccaa','local','otro_publico']),
           clase_concursal: nullableEnum(['privilegio_especial','privilegio_general','ordinario','subordinado']),
+          fecha_origen: { type: ['string','null'] },
           concepto_categoria: { type: ['string','null'] },
           garantia_real: { type: 'boolean' },
           valor_garantia: { type: ['number','null'], minimum: 0 },
           confidence: { type: 'number', minimum: 0, maximum: 1 },
           evidence: evidenceSchema
         },
-        required: ['acreedor','nif','concepto','importe_euros','tipo_acreedor','clase_concursal','concepto_categoria','garantia_real','valor_garantia','confidence','evidence'],
+        required: ['acreedor','nif','concepto','importe_euros','tipo_acreedor','clase_concursal','fecha_origen','concepto_categoria','garantia_real','valor_garantia','confidence','evidence'],
         additionalProperties: false
       }
     },
@@ -167,6 +168,7 @@ export async function handler(event) {
     'Los importes deben devolverse en euros como número.',
     'La lista de acreedores debe contener una fila por crédito identificable; no incluyas la fila TOTAL.',
     'Clasifica tipo_acreedor y clase_concursal sólo cuando el propio texto lo permita; en otro caso null.',
+    'Si el documento contiene una fecha de origen o antigüedad del crédito, devuélvela en fecha_origen (AAAA-MM-DD); si no consta, null.',
     'Todas las salidas serán revisadas por una persona antes de producir una resolución.'
   ].join('\n');
 

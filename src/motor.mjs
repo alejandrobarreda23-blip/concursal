@@ -1,6 +1,6 @@
 // Motor de resolución sobre Legal Core + Knowledge.
 // La orquestación es estable; workflow, clasificación jurídica y redacción vienen del pack.
-import { validarExpediente } from './validar-expediente.mjs';
+import { validarExpediente, advertenciasFormalesExpediente } from './validar-expediente.mjs';
 import { determinarFase, ESTADOS } from './fases.mjs';
 import { clasificarCreditos } from './creditos.mjs';
 import { construirIR } from './resolucion-ir.mjs';
@@ -27,7 +27,11 @@ export function generarAutoConclusion(expediente, { knowledge, pack = null } = {
     return { estado: 'error_redaccion', errores: [err.message], ir };
   }
 
-  const controles = controlesCalidad(ir, documento, texto);
+  const controlesBase = controlesCalidad(ir, documento, texto);
+  const controles = Object.freeze({
+    ...controlesBase,
+    avisos: [...new Set([...(controlesBase.avisos || []), ...(clasificacion.avisos || []), ...advertenciasFormalesExpediente(expediente)])]
+  });
   if (!controles.ok) return { estado: 'bloqueado_por_calidad', controles, ir };
 
   return {
