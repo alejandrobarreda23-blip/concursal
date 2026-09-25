@@ -63,7 +63,16 @@ test('declaración: la EPI anunciada solo se menciona para persona natural que l
   assert.ok(generarDeclaracion(base).texto.includes('Exoneración del pasivo insatisfecho'));
 });
 
-test('declaración: faltan NIF o domicilio → expediente inválido', () => {
-  const e = copia(base); e.deudor.nif = '';
-  assert.equal(generarDeclaracion(e).estado, 'expediente_invalido');
+test('declaración: datos formales vacíos no bloquean el borrador', () => {
+  const e = copia(base);
+  e.deudor.nif = '';
+  e.deudor.domicilio = '';
+  e.procedimiento.numero = '';
+  e.procedimiento.nig = '';
+  e.organo.localidad = '';
+  e.juez.nombre = '';
+  const r = generarDeclaracion(e);
+  assert.equal(r.estado, 'borrador_no_ratificado');
+  assert.match(r.texto, /NIF ____________________/);
+  assert.ok(r.controles.avisos.some((a) => /Datos formales pendientes/.test(a)));
 });
